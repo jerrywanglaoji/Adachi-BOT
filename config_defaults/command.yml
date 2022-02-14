@@ -229,10 +229,9 @@ tools:
   weights: 99
   regex:
     - ^(help|roll|菜单|天气|管理(命令|功能)|伟大的升华|求签|占卜)\s*$
-    - ^(今天)?[吃喝]什么\s*$
     - ^roll\s*[+-]?\d+\s*$
     - ^带(个)?话\s*.+$
-    - ^(中午|晚上|晚黑|宵夜)吃(咩|么|乜)$
+    - ^(中午|晚上|晚黑|宵夜|今天|今日|今晚)(吃|喝)(咩|么|什么)$
     - ^(testImage)
   functions:
     weather:
@@ -264,9 +263,8 @@ tools:
       revert: false
       description: null
       entrance:
-        - ^(今天)?[吃喝]什么
         - ^菜单
-        - ^(中午|晚上|晚黑|宵夜)吃(咩|么)$
+        - ^(中午|晚上|晚黑|宵夜|今天|今日|今晚)(吃|喝)(咩|么|什么)$
     prophecy:
       type: command
       show: true
