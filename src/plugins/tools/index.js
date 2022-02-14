@@ -6,6 +6,7 @@ import { prophecy } from "./prophecy.js";
 import { quote } from "./quote.js";
 import { roll } from "./roll.js";
 import { weather } from "./weather.js";
+import { image } from "./image.js";
 
 async function Plugin(msg) {
   switch (true) {
@@ -43,6 +44,11 @@ async function Plugin(msg) {
     case hasEntrance(msg.text, "tools", "weather"):
       if (false !== checkAuth(msg, "weather")) {
         weather(msg);
+      }
+      break;
+    case hasEntrance(msg.text, "tools", "image"):
+      if (false !== checkAuth(msg, "image")) {
+        image(msg);
       }
       break;
   }
