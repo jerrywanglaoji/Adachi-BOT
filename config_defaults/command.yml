@@ -232,7 +232,7 @@ tools:
     - ^(今天)?[吃喝]什么\s*$
     - ^roll\s*[+-]?\d+\s*$
     - ^带(个)?话\s*.+$
-    - ^(jj|ccjj|testImage)\s*$
+    - ^(testImage)\s*$
   functions:
     weather:
       type: command
@@ -253,7 +253,7 @@ tools:
       revert: false
       description: null
       entrance:
-        - ^(jj|ccjj|testImage)
+        - ^(testImage)
     menu:
       type: command
       show: true
