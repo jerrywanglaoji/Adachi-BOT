@@ -232,7 +232,8 @@ tools:
     - ^(今天)?[吃喝]什么\s*$
     - ^roll\s*[+-]?\d+\s*$
     - ^带(个)?话\s*.+$
-    - ^(testImage)\s*$
+    - ^(中午|晚上|晚黑|宵夜)吃(咩|么|乜)$
+    - ^(testImage)
   functions:
     weather:
       type: command
@@ -265,6 +266,7 @@ tools:
       entrance:
         - ^(今天)?[吃喝]什么
         - ^菜单
+        - ^(中午|晚上|晚黑|宵夜)吃(咩|么)$
     prophecy:
       type: command
       show: true
@@ -294,7 +296,7 @@ tools:
       revert: false
       description: null
       entrance:
-        - ^伟大的升华
+        - ^伟大的升华sdfsdfsfs
     feedback:
       type: command
       show: true
@@ -474,3 +476,72 @@ save:
       description: null
       entrance:
         - ^改绑
+
+hello_world:
+  enable: false
+  weights: 10099
+  regex:
+    - ^hello\sworld$
+  functions:
+    hello_world:
+      type: command
+      show: false
+      weights: 9999
+      name: hello world
+      usage:
+      revert: false
+      description: 向你致以诚挚的问候
+      entrance:
+        - hello world
+
+auto_reply:
+  enable: true
+  weights: 100001
+  regex:
+    - ^(咁|甘).*(呢|啊|阿)$
+    - ^[咁甘].*几时.*$
+    - ^家姐几时$
+    - ^.*(哔哔|逼逼|bb)(啊|阿|a).*$
+  functions:
+    auto_reply_chouhai:
+      type: command
+      show: false
+      weights: 100001
+      name: auto reply chouhai
+      usage:
+      revert: false
+      description: 向臭嗨致以诚挚的问候
+      entrance:
+        - ^(咁|甘).*(呢|啊|阿)$
+    auto_reply_xiaci:
+      type: command
+      show: false
+      weights: 100001
+      name: auto reply xiaci
+      usage:
+      revert: false
+      description: 向臭嗨致以诚挚的问候
+      entrance:
+        - ^[咁甘].*几时.*$
+    auto_reply_jishi:
+      type: command
+      show: false
+      weights: 100001
+      name: auto reply jishi
+      usage:
+      revert: false
+      description: 向臭嗨致以诚挚的问候
+      entrance:
+        - ^家姐几时$
+    auto_reply_bba:
+      type: command
+      show: false
+      weights: 100001
+      name: auto reply bba
+      usage:
+      revert: false
+      description: 向臭嗨致以诚挚的问候
+      entrance:
+        - ^.*(哔哔|逼逼|bb)(啊|阿|a).*$
+        
+
