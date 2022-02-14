@@ -5,6 +5,7 @@ import { menu } from "./menu.js";
 import { prophecy } from "./prophecy.js";
 import { quote } from "./quote.js";
 import { roll } from "./roll.js";
+import { weather } from "./weather.js";
 
 async function Plugin(msg) {
   switch (true) {
@@ -38,6 +39,11 @@ async function Plugin(msg) {
       break;
     case hasEntrance(msg.text, "tools", "master"):
       msg.bot.say(msg.sid, global.master.usage, msg.type, msg.uid, false, "\n");
+      break;
+    case hasEntrance(msg.text, "tools", "weather"):
+      if (false !== checkAuth(msg, "weather")) {
+        weather(msg);
+      }
       break;
   }
 }
