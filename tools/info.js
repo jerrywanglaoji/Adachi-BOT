@@ -5,7 +5,7 @@ import puppeteer from "puppeteer";
 import _url from "url";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { mkdir } from "../src/utils/file.js";
+import { mkdir } from "#utils/file";
 
 const __filename = _url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -172,7 +172,7 @@ async function getMaterialTime(name) {
 }
 
 // { type, title, id , name, introduce, birthday, element, cv, constellationName, rarity, mainStat, mainValue, baseATK,
-//   ascensionMaterials, levelUpMaterials, talentMaterials, time, constellations }
+//  passiveTitle, passiveDesc, ascensionMaterials, levelUpMaterials, talentMaterials, time, constellations }
 async function getCharData(name, page) {
   const type = "角色";
   let handle;
@@ -430,13 +430,13 @@ async function getWeaponData(name, page) {
       (...h) => h.map((e) => e.textContent),
       ...(await handle.$x("./tbody/tr/td[2]")).slice(0, 6)
     );
-    const numReg = /\b[\d.]+\b/g;
+    const numReg = /[\d.]+%?/g;
     const numsList = contents.map((c) => c.match(numReg) || []);
     const texts = contents[0].split(numReg);
 
     for (let i = 0; i < texts.length - 1; ++i) {
       let sameVal = true;
-      skillContent += texts[i];
+      skillContent += texts[i].replaceAll("\\n", "<br>"); // 处理降临之剑描述中含有 \n 的情况
 
       for (let i1 = 1; i1 < numsList.length; ++i1) {
         if (numsList[0][i] !== numsList[i1][i]) {
@@ -445,18 +445,17 @@ async function getWeaponData(name, page) {
         }
       }
 
-      skillContent += "<span>";
-
       if (true === sameVal) {
+        skillContent += '<span class="desc-number">';
         skillContent += numsList[0][i];
       } else {
+        skillContent += '<span class="desc-number recolor">';
         for (const nums of numsList.filter((c) => Array.isArray(c) && c.length > 0)) {
           skillContent += `${nums[i]}/`;
         }
 
         skillContent = skillContent.slice(0, -1);
       }
-
       skillContent += "</span>";
     }
 
