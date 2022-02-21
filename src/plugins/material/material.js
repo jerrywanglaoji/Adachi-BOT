@@ -19,7 +19,7 @@ async function doMaterial(msg, url) {
 
   const materialList = { 1: "MonThu", 2: "TueFri", 3: "WedSat", 4: "MonThu", 5: "TueFri", 6: "WedSat" };
   const dayOfZhou = ["日", "一", "二", "三", "四", "五", "六"].map((c) => `周${c}`);
-  const dayOfTomorrow = ["听日", "明天"]
+  const dayOfTomorrow = ["听日", "明天"];
   const [day] = getWordByRegex(msg.text, ".{2}");
   const offset = dayOfTomorrow.indexOf(day) ? 0 : 1;
   const dayOfWeek = dayOfZhou.includes(day) ? dayOfZhou.indexOf(day) : new Date().getDay() + offset;
