@@ -166,6 +166,7 @@ MATERIALS=(
   '鎏金之鳞'     '龙王之冕'     '血玉之枝'
   '狱火之蝶'     '灰烬之心'     '熔毁之刻'
   '魔王之刃·残片'  '吞天之鲸·只角'  '武炼之魂·孤影'
+  '凶将之手眼'   '祸神之禊泪'    '万劫之真意'
   # 天赋本
   '「自由」的教导' '「自由」的指引' '「自由」的哲学'
   '「诗文」的教导' '「诗文」的指引' '「诗文」的哲学'
@@ -480,7 +481,7 @@ function getWish()
   local files=()
 
   fetch "$API2_WISH_CONFIG" 0 '' "${API2_WISH_CONFIG_FILES[@]}"
-  # fetch "$API2_WISH_CHARACTER" 1 '.png' "${CHARS[@]}"
+  #fetch "$API2_WISH_CHARACTER" 1 '.png' "${CHARS[@]}"
   fetch "$API2_WISH_WEAPON" 1 '.png' "${WEAPONS[@]}"
 }
 
