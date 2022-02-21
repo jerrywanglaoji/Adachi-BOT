@@ -1,12 +1,12 @@
 import { checkAuth } from "#utils/auth";
 import { hasEntrance } from "#utils/config";
 import { feedback } from "./feedback.js";
+import { image } from "./image.js";
 import { menu } from "./menu.js";
 import { prophecy } from "./prophecy.js";
 import { quote } from "./quote.js";
 import { roll } from "./roll.js";
 import { weather } from "./weather.js";
-import { image } from "./image.js";
 
 async function Plugin(msg) {
   switch (true) {
