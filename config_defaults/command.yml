@@ -487,7 +487,7 @@ hello_world:
       show: false
       weights: 9999
       name: hello world
-      usage:
+      usage: null
       revert: false
       description: 向你致以诚挚的问候
       entrance:
@@ -507,7 +507,7 @@ auto_reply:
       show: false
       weights: 100001
       name: auto reply chouhai
-      usage:
+      usage: null
       revert: false
       description: 向臭嗨致以诚挚的问候
       entrance:
@@ -517,7 +517,7 @@ auto_reply:
       show: false
       weights: 100001
       name: auto reply xiaci
-      usage:
+      usage: null
       revert: false
       description: 向臭嗨致以诚挚的问候
       entrance:
@@ -527,7 +527,7 @@ auto_reply:
       show: false
       weights: 100001
       name: auto reply jishi
-      usage:
+      usage: null
       revert: false
       description: 向臭嗨致以诚挚的问候
       entrance:
@@ -537,7 +537,7 @@ auto_reply:
       show: false
       weights: 100001
       name: auto reply bba
-      usage:
+      usage: null
       revert: false
       description: 向臭嗨致以诚挚的问候
       entrance:
