@@ -22,7 +22,13 @@ async function doMaterial(msg, url) {
   const dayOfTomorrow = ["听日", "明天"];
   const [day] = getWordByRegex(msg.text, ".{2}");
   const offset = dayOfTomorrow.indexOf(day) ? 0 : 1;
-  const dayOfWeek = dayOfZhou.includes(day) ? dayOfZhou.indexOf(day) : new Date().getDay() + offset;
+  const today = new Date().getDay();
+  const hour = new Date().getHours();
+  if (hour < 4) {
+    today = today - 1;
+  } 
+  msg.bot.say(msg.sid, `hour=${hour}; today=${today}`, msg.type, msg.uid, true);
+  const dayOfWeek = dayOfZhou.includes(day) ? dayOfZhou.indexOf(day) : today + offset;
 
   if (undefined === materialList[dayOfWeek]) {
     msg.bot.say(msg.sid, `${day}所有副本都可以刷哦。`, msg.type, msg.uid, true);
