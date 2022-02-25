@@ -22,7 +22,7 @@ async function doMaterial(msg, url) {
   const dayOfTomorrow = ["听日", "明天"];
   const [day] = getWordByRegex(msg.text, ".{2}");
   const offset = dayOfTomorrow.indexOf(day) ? 0 : 1;
-  const today = new Date().getDay();
+  var today = new Date().getDay();
   const hour = new Date().getHours();
   if (hour < 4) {
     today = today - 1;
