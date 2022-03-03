@@ -1,3 +1,4 @@
+import lodash from "lodash";
 import { checkAuth } from "#utils/auth";
 import { hasEntrance } from "#utils/config";
 import { guessPossibleNames } from "#utils/tools";
@@ -10,7 +11,7 @@ async function Plugin(msg) {
   switch (true) {
     case hasEntrance(msg.text, "gacha", "pool"): {
       const name = getPool(msg);
-      const guess = guessPossibleNames(name, Object.values(global.command.functions.options.pool));
+      const guess = guessPossibleNames(name, lodash.flatten(Object.values(global.command.functions.options.pool)));
       if ((undefined === name || guess.length > 0) && false !== checkAuth(msg, "pool")) {
         doPool(msg, 1 === guess.length ? guess[0] : name);
       }
@@ -18,8 +19,8 @@ async function Plugin(msg) {
     }
     case hasEntrance(msg.text, "gacha", "gacha"):
       if (false !== checkAuth(msg, "gacha")) {
-        const times = (msg.text.match(/[0-9]+/g) || [10])[0];
-        doGacha(msg, times > 10 && times <= 180 ? times : 10);
+        const times = parseInt((msg.text.match(/[0-9]+/g) || [10])[0]);
+        doGacha(msg, lodash.sortBy([10, 180, times])[1]);
       }
       break;
     case hasEntrance(msg.text, "gacha", "gacha10"):

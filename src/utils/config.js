@@ -41,7 +41,7 @@
  *     options: { eat: { apple: '苹果', banana: '香蕉', egg: '蛋' } }
  *   },
  *   enable: { hello_world: true, eat: true },
- *   weights: { hello_world: 9999, eat: 9999 },
+ *   weights: { hello_world: 9999, eat: 9989 },
  *   regex: {
  *     '^hello\\sworld(!)?\\s*$': [ 'hello_world' ],
  *     '^eat\\s*\\S+\\s*$': [ 'eat' ]
@@ -73,7 +73,7 @@
  *         - ^hello
  * Eat:
  *   enable: true
- *   weights: 9999
+ *   weights: 9989
  *   regex:
  *     - ^eat\s*\S+\s*$
  *   functions:
@@ -472,7 +472,15 @@ function getCommand(obj, key) {
               if ("string" === typeof o) {
                 return o.toLowerCase();
               } else if (Array.isArray(o)) {
-                return lodash.transform(o, (r, c) => r.push("string" === typeof c ? c.toLowerCase() : c));
+                return lodash.transform(o, (r, c) =>
+                  r.push(
+                    Array.isArray(c)
+                      ? c.map((e) => ("string" === typeof e ? e.toLowerCase() : e))
+                      : "string" === typeof c
+                      ? c.toLowerCase()
+                      : c
+                  )
+                );
               } else {
                 return lodash.transform(o, (r, v, k) => {
                   r[(k = "string" === typeof k ? k.toLowerCase() : k)] = "string" === typeof v ? v.toLowerCase() : v;
@@ -536,20 +544,6 @@ function getCommand(obj, key) {
     {}
   );
 
-  global[key].functions.options = lodash.reduce(
-    global[key].functions.options,
-    (p, v, k) => {
-      v.forEach((c) => {
-        c[1] = c[1].toString();
-        lodash.assign(p[k] || (p[k] = {}), {
-          [c[0]]: "string" === typeof c[1] ? c[1].toLowerCase() : c[1],
-        });
-      });
-      return p;
-    },
-    {}
-  );
-
   // 所有 switch 转换为 option
   if (global[key].functions.type) {
     Object.keys(global[key].functions.type).forEach((f) => {
@@ -559,10 +553,25 @@ function getCommand(obj, key) {
           .chain({})
           .assign({ on: "on" }, { off: "off" }, global[key].functions.options[f] || {})
           .pick(["on", "off"])
+          .toPairs()
           .value();
       }
     });
   }
+
+  global[key].functions.options = lodash.reduce(
+    global[key].functions.options,
+    (p, v, k) => {
+      v.forEach((c) => {
+        const value = undefined === c[1].toString ? c[1] : c[1].toString();
+        const opName = c[0];
+        const opValue = "string" === typeof value ? value.toLowerCase() : value;
+        lodash.assign(p[k] || (p[k] = {}), { [opName]: opValue });
+      });
+      return p;
+    },
+    {}
+  );
 }
 
 // obj: global.command or global.master
@@ -594,27 +603,31 @@ function makeUsage(obj) {
     for (const func of functionList.keys()) {
       if (true === obj.functions.show[func] && obj.functions.name[func]) {
         const type = obj.functions.type[func] || "command";
+        const optionsText = obj.functions.options[func]
+          ? lodash.flatten(Object.values(obj.functions.options[func])).join("、")
+          : "";
 
-        text +=
-          listMark +
-          " " +
-          (true === obj.functions.revert[func]
-            ? ("option" === type
-                ? null !== obj.functions.options[func] && Object.values(obj.functions.options[func]).join("、")
-                : "") +
-              obj.functions.name[func] +
-              " " +
-              (null !== obj.functions.usage[func] ? obj.functions.usage[func] + " " : "")
-            : obj.functions.name[func] +
-              " " +
-              (null !== obj.functions.usage[func] ? obj.functions.usage[func] + " " : "") +
-              ("option" === type
-                ? (null !== obj.functions.options[func] &&
-                    "<" + Object.values(obj.functions.options[func]).join("、")) + "> "
-                : "")) +
-          (null !== obj.functions.description[func] ? commentMark + " " : "") +
-          (obj.functions.description[func] || "") +
-          "\n";
+        text += `${listMark} `;
+
+        if ("option" === type && true === obj.functions.revert[func]) {
+          text += optionsText;
+        }
+
+        text += `${obj.functions.name[func]} `;
+
+        if (null !== obj.functions.usage[func]) {
+          text += `${obj.functions.usage[func]} `;
+        }
+
+        if ("option" === type && true !== obj.functions.revert[func]) {
+          text += `<${optionsText}> `;
+        }
+
+        if (null !== obj.functions.description[func]) {
+          text += `${commentMark} `;
+        }
+
+        text += `${obj.functions.description[func] || ""}\n`;
       }
     }
   }
