@@ -27,7 +27,6 @@ async function doMaterial(msg, url) {
   if (hour < 4) {
     today = today - 1;
   }
-  msg.bot.say(msg.sid, `hour=${hour}; today=${today}`, msg.type, msg.uid, true);
   const dayOfWeek = dayOfZhou.includes(day) ? dayOfZhou.indexOf(day) : today + offset;
 
   if (undefined === materialList[dayOfWeek]) {
