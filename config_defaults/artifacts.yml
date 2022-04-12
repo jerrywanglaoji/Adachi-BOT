@@ -38,6 +38,102 @@ values:
   - [ 209.13, 0.0408, 16.20, 0.0510, 0.0453, 16.32, 13.62, 0.0408, 0.0544, 0.0272 ]   # 四档
 
 #
+# 圣遗物属性。
+# 顺序与 weights 和 values 对应，不可更改顺序。
+#
+props:
+  -
+    type: hp
+    name: 生命值                      # 小生命
+    mainValues: [ "717", "4780" ]
+    subValues: [ "209.13", "1792.5" ]
+  -
+    type: hp
+    name: 生命值                      # 大生命
+    mainValues: [ 7.0%, 46.6% ]
+    subValues: [ 4.08%, 34.98% ]
+  -
+    type: df
+    name: 防御力                      # 小防御
+    mainValues: [ "0", "0" ]          # 不可能
+    subValues: [ "16.2", "138.9" ]
+  -
+    type: df
+    name: 防御力                      # 大防御
+    mainValues: [ 8.7%, 58.3% ]
+    subValues: [ 5.1%, 43.74% ]
+  -
+    type: er
+    name: 元素充能效率
+    mainValues: [ 7.8%, 51.8% ]
+    subValues: [ 4.53%, 38.88% ]
+  -
+    type: em
+    name: 元素精通
+    mainValues: [ "28", "187" ]
+    subValues: [ "16.32", "139.86" ]
+  -
+    type: atk
+    name: 攻击力                      # 小攻击
+    mainValues: [ "47", "311" ]
+    subValues: [ "13.62", "116.7" ]
+  -
+    type: atk
+    name: 攻击力                      # 大攻击
+    mainValues: [ 7.0%, 46.6% ]
+    subValues: [ 4.08%, 34.98% ]
+  -
+    type: cd
+    name: 暴击伤害
+    mainValues: [ 9.3%, 62.2% ]
+    subValues: [ 5.44%, 46.62% ]
+  -
+    type: cr
+    name: 暴击率
+    mainValues: [ 4.7%, 31.1% ]
+    subValues: [ 2.72%, 23.34% ]
+  -
+    type: phys
+    name: 物理伤害加成
+    mainValues: [ 8.7%, 58.3% ]
+    subValues: [ "0", "0" ]           # 不可能
+  -
+    type: anemo
+    name: 风元素伤害加成
+    mainValues: [ 7.0%, 46.6% ]
+    subValues: [ "0", "0" ]           # 不可能
+  -
+    type: cryo
+    name: 冰元素伤害加成
+    mainValues: [ 7.0%, 46.6% ]
+    subValues: [ "0", "0" ]           # 不可能
+  -
+    type: elec
+    name: 雷元素伤害加成
+    mainValues: [ 7.0%, 46.6% ]
+    subValues: [ "0", "0" ]           # 不可能
+  -
+    type: geo
+    name: 岩元素伤害加成
+    mainValues: [ 7.0%, 46.6% ]
+    subValues: [ "0", "0" ]           # 不可能
+  -
+    type: hydro
+    name: 水元素伤害加成
+    mainValues: [ 7.0%, 46.6% ]
+    subValues: [ "0", "0" ]           # 不可能
+  -
+    type: pyro
+    name: 火元素伤害加成
+    mainValues: [ 7.0%, 46.6% ]
+    subValues: [ "0", "0" ]           # 不可能
+  -
+    type: heal
+    name: 治疗加成
+    mainValues: [ 5.4%, 35.9% ]
+    subValues: [ "0", "0" ]           # 不可能
+
+#
 # 米游社 URL 到资源文件路径的部位 ID 转换。
 #
 #       生之花  死之羽  时之沙  空之杯  理之冠
@@ -167,6 +263,18 @@ artifacts:
     icon: 15021
     suit: 华馆梦醒形骸记
     names: [ 荣花之期, 华馆之羽, 众生之谣, 梦醒之瓢, 形骸之笠 ]
+  -
+    id: 20
+    rarity: 5
+    icon: null
+    suit: 辰砂往生录
+    names: [ 生灵之华, 潜光片羽, 阳辔之遗, 结契之刻, 虺雷之姿 ]
+  -
+    id: 21
+    rarity: 5
+    icon: null
+    suit: 来歆余响
+    names: [ 魂香之花, 垂玉之叶, 祝祀之凭, 涌泉之盏, 浮溯之钰 ]
 
 #
 # 副本掉落设置。别名 alias 忽略大小写。
@@ -222,3 +330,8 @@ domains:
     name: 沉眠之庭
     alias: [ 防御本, 海染本, 蚌埠本 ]
     product: [ 18, 19 ]
+  -
+    id: 10
+    name: 岩中幽谷
+    alias: [ ]
+    product: [ 20, 21 ]

@@ -1,21 +1,20 @@
 import lodash from "lodash";
+import { doArtifacts } from "#plugins/artifacts/artifacts";
+import { domainInfo } from "#plugins/artifacts/data";
+import { doStrengthen } from "#plugins/artifacts/strengthen";
+import { getText } from "#plugins/artifacts/text";
 import { checkAuth } from "#utils/auth";
 import { hasEntrance } from "#utils/config";
 import { guessPossibleNames } from "#utils/tools";
-import { doArtifacts } from "./artifacts.js";
-import { domainInfo } from "./data.js";
-import { doStrengthen } from "./strengthen.js";
-import { getText } from "./text.js";
 
 async function Plugin(msg) {
   const text = getText(msg);
   const guess = guessPossibleNames(
     text,
     lodash
-      .chain(global.artifacts.domains.alias)
+      .chain(Object.assign({}, global.artifacts.domains.alias, global.artifacts.domains.name))
       .toPairs()
       .flatten()
-      .concat(Object.keys(global.artifacts.domains.name))
       .uniq()
       .value()
   );

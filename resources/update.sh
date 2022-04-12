@@ -22,7 +22,7 @@ CURL=('curl' '-sL')
 # ==============================================================================
 # 圣遗物，我不确定原作者是否会依次递增，因此此处写成数组。
 ARTIFACT_IDS=(
-  $(seq 0 19)
+  $(seq 0 21)
 )
 # ==============================================================================
 # 所有的洞天。
@@ -41,7 +41,7 @@ CHARS=(
   # 风
   '温迪'     '琴'       '魈'       '砂糖'     '枫原万叶' '早柚'
   # 水
-  '达达利亚' '莫娜'     '行秋'     '芭芭拉'   '珊瑚宫心海'
+  '达达利亚' '莫娜'     '行秋'     '芭芭拉'   '珊瑚宫心海'          '神里绫人'
   # 火
   '迪卢克'   '可莉'     '胡桃'     '班尼特'   '香菱'     '安柏'     '辛焱'
   '烟绯'     '宵宫'     '托马'
@@ -60,8 +60,8 @@ CHARS=(
 CHARIDS=(
   # 温迪     琴         魈         砂糖       枫原万叶   早柚
   '10000022' '10000003' '10000026' '10000043' '10000047' '10000053'
-  # 达达利亚 莫娜       行秋       芭芭拉     珊瑚宫心海
-  '10000033' '10000041' '10000025' '10000014' '10000054'
+  # 达达利亚 莫娜       行秋       芭芭拉     珊瑚宫心海            神里绫人
+  '10000033' '10000041' '10000025' '10000014' '10000054'            '10000066'
   # 迪卢克   可莉       胡桃       班尼特     香菱       安柏       辛焱
   '10000016' '10000029' '10000046' '10000032' '10000023' '10000021' '10000044'
   # 烟绯'    宵宫       托马
@@ -95,7 +95,7 @@ WEAPONS=(
   '黑剑'         '暗巷闪光'     '宗室长剑'     '铁蜂刺'       '笛剑'
   '匣里龙吟'     '天目影打刀'   '祭礼剑'       '辰砂之纺锤'
   '苍古自由之誓' '天空之刃'     '磐岩结绿'     '风鹰剑'       '斫峰之刃'
-  '雾切之回光'
+  '雾切之回光'   '波乱月白经津'
   # 双手剑
   '训练大剑'     '佣兵重剑'
   '沐浴龙血的剑' '白铁大剑'     '铁影阔剑'     '飞天大御剑'   '以理服人'
@@ -215,6 +215,8 @@ API2_THUMB_CHARACTER='Version2/thumb/character'
 API2_THUMB_WEAPON='Version2/thumb/weapon'
 API_CHARACTER_PROFILE='characters/profile'
 API_GACHA_ITEMS='gacha/items'
+API_IMAGES_CHEST='images/chest'
+API_IMAGES_CULUS='images/culus'
 API_ITEM='item'
 API_MODULE='module'
 
@@ -249,6 +251,14 @@ API_GACHA_ITEMS_FILES=(
   'ThreeBackground.png'
   'ThreeStar.png'
   'background.png'
+)
+API_IMAGES_CHEST_FILES=(
+  $(echo $(seq 1 5) | tr ' ' "\n" | xargs -I {} echo "treasure_chest_{}.png")
+)
+API_IMAGES_CULUS_FILES=(
+  'Anemoculus.png'
+  'Geoculus.png'
+  'Electroculus.png'
 )
 API_ITEM_FILES=(
   'lock.png'
@@ -427,6 +437,11 @@ function getWeapon()
   fetch "$API2_WEAPON" 1 '.png' "${WEAPONS[@]}"
 }
 
+function getImage() {
+  fetch "$API_IMAGES_CHEST" 0 '' "${API_IMAGES_CHEST_FILES[@]}"
+  fetch "$API_IMAGES_CULUS" 0 '' "${API_IMAGES_CULUS_FILES[@]}"
+}
+
 function getItem()
 {
   fetch "$API_ITEM" 0 '' "${API_ITEM_FILES[@]}"
@@ -446,8 +461,8 @@ function getInfo()
     done
   done
 
-  fetch "$API2_INFO_DOCS" 1 '.json' "${CHARS[@]}"
-  fetch "$API2_INFO_DOCS" 1 '.json' "${WEAPONS[@]}"
+  #fetch "$API2_INFO_DOCS" 1 '.json' "${CHARS[@]}"
+  #fetch "$API2_INFO_DOCS" 1 '.json' "${WEAPONS[@]}"
   fetch "$API2_INFO_OTHER" 0 '' "${files[@]}"
   fetch "$API2_INFO_IMAGE" 1 '.png' "${MATERIALS[@]}"
 }
@@ -543,6 +558,7 @@ function listXML()
   getMoudle
   getNameCard
   getWeapon
+  #getImage
   getItem
   getInfo
   getArtifacts

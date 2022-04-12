@@ -7,7 +7,7 @@
 @font-face {
   font-family: "Source Han Sans SC";
   font-display: swap;
-  src: url("../../../../data/font/SourceHanSans-Regular.otf");
+  src: url("../../../../data/font/SourceHanSansSC-Regular.otf");
 }
 
 @font-face {
@@ -26,7 +26,7 @@ body,
 #app {
   width: 720px;
   overflow-x: hidden;
-  -webkit-text-stroke: 0.018em;
+  -webkit-text-stroke: 0.018em currentColor;
   letter-spacing: 0.01em;
   font-family: "Source Han Serif SC Heavy", serif;
 }

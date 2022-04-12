@@ -1,17 +1,12 @@
+import { doSave } from "#plugins/save/save";
 import { checkAuth } from "#utils/auth";
 import { hasEntrance } from "#utils/config";
-import { doSave } from "./save.js";
 
 async function Plugin(msg) {
   switch (true) {
     case hasEntrance(msg.text, "save", "save"):
       if (false !== checkAuth(msg, "save")) {
-        doSave(msg, "save");
-      }
-      break;
-    case hasEntrance(msg.text, "save", "change"):
-      if (false !== checkAuth(msg, "change")) {
-        doSave(msg, "change");
+        doSave(msg);
       }
       break;
   }

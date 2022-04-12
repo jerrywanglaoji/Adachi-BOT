@@ -1,8 +1,6 @@
 import { getParams, html } from "../common/utils.js";
 
-// eslint-disable-next-line no-undef
-const { defineComponent } = Vue;
-
+const { defineComponent } = window.Vue;
 const template = html`
   <p class="title absolute-position">{{artifactData.name}}</p>
   <p class="position absolute-position">{{artifactData.position}}</p>
@@ -22,12 +20,13 @@ export default defineComponent({
   name: "genshinArtifact",
   template: template,
   setup() {
+    function getLink(id, slotPosition) {
+      return "http://localhost:9934/resources/Version2/artifact/" + id + "/" + slotPosition + ".png";
+    }
+
     const params = getParams(window.location.href);
     const artifactID = params.base.artifactID || 0;
     const artifactSlot = params.base.slot || 0;
-    const getLink = (id, slotPosition) =>
-      "http://localhost:9934/resources/Version2/artifact/" + id + "/" + slotPosition + ".png";
-
     const artifactData = {
       name: params.base.name || "",
       position: params.base.slotName || "",

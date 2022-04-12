@@ -1,16 +1,20 @@
 import lodash from "lodash";
+import moment from "moment-timezone";
 import path from "path";
 import { getCache } from "#utils/cache";
 import { render } from "#utils/render";
 import { getWordByRegex } from "#utils/tools";
 
-const getUrl = (p) => `https://upload-bbs.mihoyo.com/upload/${"/" === p[0] ? p.substring(1) : p}`;
-const urls = { weekly: getUrl("/2022/02/18/75833613/15b472dcd67a67016ece772e8528faf0_2513941823560578118.png") };
+const mUrls = { weekly: getUrl("/2022/03/29/75833613/7cef666b6a5fa3f12785e6e4406a060f_4832769786132969938.png") };
+
+function getUrl(p) {
+  return `https://uploadstatic.mihoyo.com/ys-obc/${"/" === p[0] ? p.substring(1) : p}`;
+}
 
 async function doMaterial(msg, url) {
-  const cacheDir = path.resolve(global.rootdir, "data", "image", "material");
+  const cacheDir = path.resolve(global.datadir, "image", "material");
 
-  if (url === urls.weekly) {
+  if (url === mUrls.weekly) {
     const data = await getCache(url, cacheDir, "base64");
     const text = `[CQ:image,type=image,file=base64://${data}]`;
     msg.bot.say(msg.sid, text, msg.type, msg.uid);
@@ -58,21 +62,23 @@ async function doMaterial(msg, url) {
     }
   });
 
-  items.weapon.forEach((c) => {
-    const ascension = lodash.cloneDeep(lodash.take(c.ascensionMaterials[0] || [], 3));
-    let hasIn = false;
+  items.weapon
+    .filter((c) => "number" === typeof c.rarity && c.rarity > 2)
+    .forEach((c) => {
+      const ascension = lodash.cloneDeep(lodash.take(c.ascensionMaterials[0] || [], 4));
+      let hasIn = false;
 
-    for (let i = 0; i < ascensions.weapon.length; ++i) {
-      if (lodash.isEqual(ascensions.weapon[i], ascension)) {
-        hasIn = true;
-        break;
+      for (let i = 0; i < ascensions.weapon.length; ++i) {
+        if (lodash.isEqual(ascensions.weapon[i], ascension)) {
+          hasIn = true;
+          break;
+        }
       }
-    }
 
-    if (false === hasIn) {
-      ascensions.weapon.push(ascension);
-    }
-  });
+      if (false === hasIn) {
+        ascensions.weapon.push(ascension);
+      }
+    });
 
   ascensions.character.forEach((n) => {
     const record = { ascension: n, list: [] };
@@ -92,7 +98,7 @@ async function doMaterial(msg, url) {
     const record = { ascension: n, list: [] };
 
     items.weapon.forEach((c) => {
-      const ascension = lodash.take(c.ascensionMaterials[0] || [], 3);
+      const ascension = lodash.take(c.ascensionMaterials[0] || [], 4);
 
       if (lodash.isEqual(ascension, n)) {
         record.list.push({ name: c.name, rarity: c.rarity });
@@ -105,4 +111,4 @@ async function doMaterial(msg, url) {
   render(msg, { day, character, weapon }, "genshin-material");
 }
 
-export { doMaterial, urls };
+export { doMaterial, mUrls as urls };

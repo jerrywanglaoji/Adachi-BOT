@@ -1,9 +1,6 @@
-// noinspection HtmlRequiredAltAttribute
 import { getParams, html } from "../common/utils.js";
 
-// eslint-disable-next-line no-undef
-const { defineComponent } = Vue;
-
+const { defineComponent } = window.Vue;
 const barTemplate = html`
   <div class="container-bar">
     <p class="bar-title">命之座</p>
@@ -32,8 +29,6 @@ const barTemplate = html`
     <p class="bar-details">{{fetter}}<span>/</span>10</p>
   </div>
 `;
-
-// noinspection JSUnusedGlobalSymbols
 const barInfos = defineComponent({
   name: "barInfos",
   template: barTemplate,
@@ -47,14 +42,11 @@ const barInfos = defineComponent({
     },
   },
   setup(props) {
-    const fetter = props.fetter || 0;
-    const constellationNum = props.constellationNum || 0;
-
     return {
       // eslint-disable-next-line vue/no-dupe-keys
-      fetter,
+      fetter: props.fetter || 0,
       // eslint-disable-next-line vue/no-dupe-keys
-      constellationNum,
+      constellationNum: props.constellationNum || 0,
     };
   },
 });
@@ -114,7 +106,6 @@ const artifactBox = defineComponent({
     };
   },
 });
-
 const template = html` <div class="background" :class="charElementType">
   <img class="svg" :src="elementSvgSrc" />
   <div class="container-deco-strip">{{ decoStripContent }}</div>
@@ -129,7 +120,7 @@ const template = html` <div class="background" :class="charElementType">
       <div class="weapon-table">
         <div class="box-title" v-html="weaponInfo.type"><p></p></div>
         <div class="info-content container-weapon-info">
-          <div class="weapon-level-ring" :style="{background: getLevelStyle(weaponInfo.level)}">
+          <div class="weapon-level-ring" :style="{background: getWeaponLevelStyle(weaponInfo.level)}">
             <img
               class="weapon-icon"
               :class="weaponInfo.rarityClass"
@@ -169,6 +160,10 @@ export default defineComponent({
     getLevelStyle: (level) => {
       const percentage = (level / 90) * 100;
       return `conic-gradient(#efeae3 0, #efeae3 ${percentage - 0.02}%, rgba(255,255,255,0) ${percentage + 0.02}%)`;
+    },
+    getWeaponLevelStyle: (level) => {
+      const percentage = (level / 90) * 100;
+      return `conic-gradient(#efeae3 0, #efeae3 ${percentage - 0.1}%, rgba(255,255,255,0) ${percentage + 0.1}%)`;
     },
   },
   setup() {

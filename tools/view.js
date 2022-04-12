@@ -2,18 +2,14 @@ import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import puppeteer from "puppeteer";
-import url from "url";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import "#utils/config";
 import { ls } from "#utils/file";
 
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const rootdir = path.resolve(__dirname, "..");
-const paramsDir = path.resolve(rootdir, "data", "record", "last_params");
-const names = Object.fromEntries(
-  ls(paramsDir)
+const mParamsDir = path.resolve(global.datadir, "record", "last_params");
+const mNames = Object.fromEntries(
+  ls(mParamsDir)
     .filter((c) => c.match(/\bgenshin-[\w-]+?[.]json$/))
     .map((c) => {
       const p = path.parse(c);
@@ -21,8 +17,8 @@ const names = Object.fromEntries(
     })
 );
 
-async function main() {
-  const argv = yargs(hideBin(process.argv))
+(async function main() {
+  const { argv } = yargs(hideBin(process.argv))
     .usage("-n <string>")
     .example("-n aby")
     .help("help")
@@ -43,13 +39,13 @@ async function main() {
         requiresArg: false,
         required: false,
       },
-    }).argv;
+    });
 
   if ("string" === typeof argv.name) {
-    if (undefined !== names[argv.name]) {
+    if (undefined !== mNames[argv.name]) {
       const view = `genshin-${argv.name}`;
-      const dataFile = path.resolve(paramsDir, `${view}.json`);
-      const viewFile = path.resolve(__dirname, "..", "src", "views", `${view}.html`);
+      const dataFile = path.resolve(mParamsDir, `${view}.json`);
+      const viewFile = path.resolve(global.rootdir, "src", "views", `${view}.html`);
 
       for (const f of [dataFile, viewFile]) {
         try {
@@ -82,7 +78,7 @@ async function main() {
   }
 
   if (true === argv.list) {
-    const nameList = Object.keys(names);
+    const nameList = Object.keys(mNames);
 
     if (nameList.length > 0) {
       console.log(nameList.join("\n"));
@@ -91,6 +87,7 @@ async function main() {
 
     return -1;
   }
-}
-
-main().then((n) => process.exit(n));
+})()
+  .then((n) => process.exit("number" === typeof n ? n : 0))
+  .catch((e) => console.log(e))
+  .finally(() => process.exit(-1));

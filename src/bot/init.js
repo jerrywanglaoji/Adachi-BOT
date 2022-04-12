@@ -1,11 +1,10 @@
-import express from "express";
 import schedule from "node-schedule";
 import { gachaUpdate } from "#jobs/gacha";
-import { mysNewsNotice, mysNewsUpdate } from "#jobs/news";
+import { mysNewsNotice, mysNewsTryToResetDB, mysNewsUpdate } from "#jobs/news";
 import db from "#utils/database";
 import { renderClose, renderOpen, renderPath } from "#utils/render";
 
-let postRunning = false;
+let mPostRunning = false;
 
 function initDB() {
   db.init("aby");
@@ -20,6 +19,8 @@ function initDB() {
   db.init("music", { source: [] });
   db.init("news", { data: {}, timestamp: [] });
   db.init("time");
+
+  mysNewsTryToResetDB();
 }
 
 async function initBrowser() {
@@ -34,8 +35,14 @@ function doDBClean(name) {
 }
 
 async function lastWords() {
+  const message = "我下线了。";
+
   for (const bot of global.bots) {
-    await bot.sayMaster(undefined, "我下线了。");
+    if (1 === global.config.groupHello) {
+      await bot.boardcast(global.greeting.offline || message, "group");
+    }
+
+    await bot.sayMaster(undefined, message);
   }
 }
 
@@ -56,13 +63,13 @@ function syncDBJob() {
 }
 
 async function mysNewsJob() {
-  if (true === (await mysNewsUpdate())) {
+  if (await mysNewsUpdate()) {
     mysNewsNotice();
   }
 }
 
 async function updateGachaJob() {
-  if (true === (await gachaUpdate())) {
+  if (await gachaUpdate()) {
     global.bots.logger.debug("卡池：内容已刷新。");
   } else {
     global.bots.logger.debug("卡池：刷新内容失败。");
@@ -70,24 +77,22 @@ async function updateGachaJob() {
 }
 
 async function doPost() {
-  if (false === postRunning) {
-    postRunning = true;
+  if (false === mPostRunning) {
+    mPostRunning = true; // {
+
+    global.bots.logger.debug("正在结束……");
+    syncDBJob();
     await renderClose();
     await lastWords();
-    syncDBJob();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    postRunning = false;
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // }
+    mPostRunning = false;
   } else {
-    while (true === postRunning) {
+    while (true === mPostRunning) {
       await new Promise((resolve) => setTimeout(() => resolve(), 100));
     }
   }
-}
-
-function serve(port = 9934) {
-  const server = express();
-  server.use(express.static(global.rootdir));
-  server.listen(port, "localhost");
 }
 
 async function init() {
@@ -95,17 +100,20 @@ async function init() {
     process.on(signal, () => doPost().then((n) => process.exit(n)));
   }
 
-  serve(9934);
   initDB();
   await initBrowser();
   await updateGachaJob();
   cleanDBJob();
   syncDBJob();
 
-  schedule.scheduleJob("*/5 * * * *", () => syncDBJob());
-  schedule.scheduleJob("*/5 * * * *", () => mysNewsJob());
-  schedule.scheduleJob("1 */1 * * *", () => cleanDBJob());
-  schedule.scheduleJob("0 */1 * * *", () => updateGachaJob());
+  schedule.scheduleJob("*/5 * * * *", async () => {
+    syncDBJob();
+    await mysNewsJob();
+  });
+  schedule.scheduleJob("0 */1 * * *", async () => {
+    cleanDBJob();
+    await updateGachaJob();
+  });
 }
 
 export { init };

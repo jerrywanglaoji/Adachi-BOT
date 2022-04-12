@@ -1,9 +1,21 @@
 import fs from "fs";
+import lodash from "lodash";
 import path from "path";
 import puppeteer from "puppeteer";
 import { mkdir } from "#utils/file";
 
-const settings = {
+// selector: 截图的页面元素。遵循 CSS 选择器语法。
+// hello:    耗时操作是否给提示
+// scale:    截图时的缩放比例。在纵横方向上各应使用多少屏幕实际像素来绘制单个CSS像素。效果约等同于 devicePixelRatio 。
+// delete:   是否撤回消息
+//
+// selector -> view (string): selector (string)
+// hello    -> view (string): hello (boolean)
+// scale    -> view (string): scale (number)
+// hello    -> view (string): delete (boolean)
+//
+// 如果没有设置则使用 mSettingsDefault 中的默认值
+const mSettings = {
   selector: {},
   hello: {
     "genshin-aby": true,
@@ -14,7 +26,7 @@ const settings = {
   scale: {
     "genshin-aby": 2,
     "genshin-artifact": 1.2,
-    "genshin-card-8": 2,
+    "genshin-card": 2,
     "genshin-material": 2,
   },
   delete: {
@@ -22,14 +34,19 @@ const settings = {
     "genshin-gacha": true,
   },
 };
-const settingsDefault = { selector: "body", hello: false, scale: 1.5, delete: false };
-const renderPath = puppeteer.executablePath();
+const mSettingsDefault = {
+  selector: "body",
+  hello: false,
+  scale: 1.5,
+  delete: false,
+};
+const mRenderPath = puppeteer.executablePath();
 
 async function renderOpen() {
   if (undefined === global.browser) {
     global.browser = await puppeteer.launch({
       defaultViewport: null,
-      headless: 0 === global.config.viewDebug,
+      headless: lodash.hasIn(global.config, "viewDebug") ? 1 !== global.config.viewDebug : false,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -53,16 +70,16 @@ async function renderClose() {
 }
 
 async function render(msg, data, name) {
-  const recordDir = path.resolve(global.rootdir, "data", "record");
+  const recordDir = path.resolve(global.datadir, "record");
   let binary;
 
-  if ((settings.hello[name] || settingsDefault.hello) && global.config.warnTimeCosts && undefined !== msg.bot) {
+  if ((mSettings.hello[name] || mSettingsDefault.hello) && global.config.warnTimeCosts && undefined !== msg.bot) {
     msg.bot.say(msg.sid, "正在绘图，请稍等……", msg.type, msg.uid, true);
   }
 
   // 抽卡信息太多时减少缩放比
   if ("genshin-gacha" === name && Array.isArray(data.data) && data.data.length > 10) {
-    settings.scale["genshin-gacha"] = 1;
+    mSettings.scale["genshin-gacha"] = 1;
   }
 
   try {
@@ -83,7 +100,7 @@ async function render(msg, data, name) {
     }
 
     const page = await global.browser.newPage();
-    const scale = settings.scale[name] || settingsDefault.scale;
+    const scale = mSettings.scale[name] || mSettingsDefault.scale;
 
     // 只在机器人发送图片时设置 viewport
     if (undefined !== msg.bot) {
@@ -102,7 +119,7 @@ async function render(msg, data, name) {
     const param = { data: new Buffer.from(dataStr, "utf8").toString("base64") };
     await page.goto(`http://localhost:9934/src/views/${name}.html?${new URLSearchParams(param)}`);
 
-    const html = await page.$(settings.selector[name] || settingsDefault.selector, { waitUntil: "networkidle0" });
+    const html = await page.$(mSettings.selector[name] || mSettingsDefault.selector, { waitUntil: "networkidle0" });
     binary = await html.screenshot({
       encoding: "binary",
       type: "jpeg",
@@ -110,7 +127,7 @@ async function render(msg, data, name) {
       omitBackground: true,
     });
 
-    if (0 === global.config.viewDebug) {
+    if (1 !== global.config.viewDebug) {
       await page.close();
     }
   } catch (e) {
@@ -124,7 +141,7 @@ async function render(msg, data, name) {
   if (binary) {
     const base64 = new Buffer.from(binary, "utf8").toString("base64");
     const imageCQ = `[CQ:image,type=image,file=base64://${base64}]`;
-    const toDelete = undefined === settings.delete[name] ? settingsDefault.delete : settings.delete[name];
+    const toDelete = undefined === mSettings.delete[name] ? mSettingsDefault.delete : mSettings.delete[name];
     const record = path.resolve(mkdir(path.resolve(recordDir, name)), `${msg.sid}.jpeg`);
 
     if (undefined !== msg.bot) {
@@ -137,4 +154,4 @@ async function render(msg, data, name) {
   }
 }
 
-export { render, renderClose, renderOpen, renderPath };
+export { render, renderClose, renderOpen, mRenderPath as renderPath };

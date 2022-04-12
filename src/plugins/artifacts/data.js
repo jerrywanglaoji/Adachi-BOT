@@ -1,27 +1,6 @@
 import randomFloat from "random-float";
 import db from "#utils/database";
 
-const props = [
-  { name: "生命值", value: ["717", "4780"] },
-  { name: "生命值", value: ["7.0%", "46.6%"] },
-  { name: "防御力", value: ["7.0%", "46.6%"] },
-  { name: "防御力", value: ["8.7%", "58.3%"] },
-  { name: "元素充能效率", value: ["7.8%", "51.8%"] },
-  { name: "元素精通", value: ["28", "187"] },
-  { name: "攻击力", value: ["47", "311"] },
-  { name: "攻击力", value: ["7.0%", "46.6%"] },
-  { name: "暴击伤害", value: ["9.3%", "62.2%"] },
-  { name: "暴击率", value: ["4.7%", "31.1%"] },
-  { name: "物理伤害加成", value: ["8.7%", "58.3%"] },
-  { name: "风元素伤害加成", value: ["7.0%", "46.6%"] },
-  { name: "冰元素伤害加成", value: ["7.0%", "46.6%"] },
-  { name: "雷元素伤害加成", value: ["7.0%", "46.6%"] },
-  { name: "岩元素伤害加成", value: ["7.0%", "46.6%"] },
-  { name: "水元素伤害加成", value: ["7.0%", "46.6%"] },
-  { name: "火元素伤害加成", value: ["7.0%", "46.6%"] },
-  { name: "治疗加成", value: ["5.4%", "35.9%"] },
-];
-
 function randomInt(Min, Max) {
   const range = Max - Min + 1;
   return Min + Math.floor(Math.random() * range);
@@ -132,7 +111,7 @@ function toArray(property) {
   let num = 0;
 
   for (const i in property) {
-    let temp = { name: props.map((c) => c.name)[i] };
+    let temp = { name: global.artifacts.props.map((c) => c.name)[i] };
 
     if (property[i] < 1) {
       temp.data = (property[i] * 100).toFixed(1) + "%";
@@ -152,6 +131,7 @@ function getInitial(num, subStats) {
   for (let i = 0; i < num; i++) {
     const id = subStats[i].stat;
     const lv = subStats[i].grade;
+
     property[id] = global.artifacts.values[lv][id];
   }
 
@@ -184,10 +164,10 @@ function getArtifact(userID, type) {
   const levelInitial = 0;
   const levelFortified = 20;
   const mainStat = getMainStat(slot);
-  const mainStatText = props.map((c) => c.name)[mainStat] || "";
-  const mainValueItem = props[mainStat] || [];
-  const mainValueInitial = (mainValueItem.value || [])[0];
-  const mainValueFortified = (mainValueItem.value || [])[1];
+  const mainStatText = global.artifacts.props.map((c) => c.name)[mainStat] || "";
+  const mainValueItem = global.artifacts.props[mainStat] || [];
+  const mainValueInitial = (mainValueItem.mainValues || [])[0];
+  const mainValueFortified = (mainValueItem.mainValues || [])[1];
   const subStats = getSubStats(mainStat);
   const initPropertyNum = getInit();
   const improves = getImproves();

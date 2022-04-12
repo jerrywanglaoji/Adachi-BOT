@@ -1,8 +1,6 @@
 import { html } from "../common/utils.js";
 
-// eslint-disable-next-line no-undef
-const { defineComponent } = Vue;
-
+const { defineComponent } = window.Vue;
 const materialTemplate = html` <div class="unit">
   <div class="top-box">
     <div class="ascension-name">{{ ascensionName }}</div>
@@ -22,7 +20,6 @@ const materialTemplate = html` <div class="unit">
     </div>
   </div>
 </div>`;
-
 const materialUnit = defineComponent({
   name: "MaterialUnit",
   template: materialTemplate,
@@ -60,15 +57,14 @@ const materialUnit = defineComponent({
   },
 });
 
-const template = html`<div class="material-column">
-  <div class="title">{{ title }}</div>
-  <materialUnit v-if="data.length !== 0" v-for="d in data" :data="d" :type="type" />
-  <div v-else class="empty-box">今日没有可刷取材料的{{ type === "character" ? "角色" : "武器" }}</div>
+const materialColumnTemplate = html`<div class="material-column">
+  <div class="title" v-html="title"></div>
+  <materialUnit v-for="d in data" :data="d" :type="type" />
 </div>`;
 
 export default defineComponent({
   name: "MaterialColumn",
-  template,
+  template: materialColumnTemplate,
   components: {
     materialUnit,
   },
@@ -78,7 +74,9 @@ export default defineComponent({
     day: String,
   },
   setup(props) {
-    const title = `${props.day}${props.type === "weapon" ? "武器" : "角色"}素材`;
+    const title = `<div class="title-text">${props.day}${props.type === "weapon" ? "武器" : "角色"}素材${
+      "今日" === props.day ? "<p class='tips'>（每天凌晨四点刷新）</p>" : ""
+    }</div>`;
     return { title };
   },
 });

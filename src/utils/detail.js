@@ -143,7 +143,7 @@ async function abyDetail(uid, server, userID, schedule_type, bot) {
 
   const { retcode, message, data } = response;
 
-  if (retcode !== 0) {
+  if (0 !== retcode) {
     return getDetailErrorForPossibleInvalidCookie(retcode, message, cookie);
   }
 
@@ -175,7 +175,7 @@ async function baseDetail(mhyID, userID, bot) {
   let response;
 
   try {
-    cookie = getCookie("MHY" + mhyID, false, bot);
+    cookie = getCookie(undefined, false, bot);
     response = await getBase(mhyID, cookie);
   } catch (e) {
     throw detailError(e);
@@ -184,9 +184,11 @@ async function baseDetail(mhyID, userID, bot) {
   const { retcode, message, data } = response;
   const errInfo = "未查询到角色数据，请检查米哈游通行证是否有误或是否设置角色信息公开";
 
-  if (retcode !== 0) {
+  if (0 !== retcode) {
     return getDetailErrorForPossibleInvalidCookie(retcode, message, cookie);
-  } else if (!data.list || 0 === data.list.length) {
+  }
+
+  if (!Array.isArray(data.list) || 0 === data.list.length) {
     throw detailError(errInfo);
   }
 
@@ -196,14 +198,18 @@ async function baseDetail(mhyID, userID, bot) {
     throw detailError(errInfo);
   }
 
-  const { game_role_id, nickname, region, level } = baseInfo;
-  const uid = parseInt(game_role_id);
+  const { game_role_id: roleID, nickname, region, level } = baseInfo;
+  const uid = parseInt(roleID);
 
   userInitialize(uid, nickname, level);
   db.update("info", "user", { uid }, { level, nickname });
 
   if (db.includes("map", "user", { userID })) {
-    db.update("map", "user", { userID }, { UID: uid });
+    const record = db.get("map", "user", { userID }) || {};
+
+    if (mhyID === record.mhyID && uid !== record.UID) {
+      db.update("map", "user", { userID }, { UID: uid });
+    }
   }
 
   return [uid, region];
@@ -219,13 +225,13 @@ async function indexDetail(uid, server, userID, bot) {
     const { retcode } = db.get("info", "user", { uid }) || {};
 
     if (0 === retcode) {
-      bot.logger.debug(`缓存：使用 ${uid} 在 ${global.config.cacheInfoEffectTime} 小时内的玩家数据缓存。`);
       const { retcode, message } = db.get("info", "user", { uid }) || {};
 
-      if (retcode !== 0) {
+      if (0 !== retcode) {
         throw detailError(`米游社接口报错: ${message}`);
       }
 
+      bot.logger.debug(`缓存：使用 ${uid} 在 ${global.config.cacheInfoEffectTime} 小时内的玩家数据缓存。`);
       throw detailError("", true);
     }
   }
@@ -242,7 +248,7 @@ async function indexDetail(uid, server, userID, bot) {
 
   const { retcode, message, data } = response;
 
-  if (retcode !== 0) {
+  if (0 !== retcode) {
     db.update("info", "user", { uid }, { message, retcode: parseInt(retcode) });
     return getDetailErrorForPossibleInvalidCookie(retcode, message, cookie);
   }
@@ -266,8 +272,7 @@ async function indexDetail(uid, server, userID, bot) {
 
   db.update("time", "user", { uid }, { time: nowTime });
   bot.logger.debug(`缓存：新增 ${uid} 的玩家数据，缓存 ${global.config.cacheInfoEffectTime} 小时。`);
-  const characterID = data.avatars.map((el) => el.id);
-  return characterID;
+  return data.avatars.map((el) => el.id);
 }
 
 // 适应米游社 API 改版，如果 guess 为 true 则猜测所有除了 character_ids 之外可能的角色。
@@ -290,7 +295,7 @@ async function characterDetail(uid, server, character_ids, guess = false, bot) {
 
   const { retcode, message, data } = response;
 
-  if (retcode !== 0) {
+  if (0 !== retcode) {
     return getDetailErrorForPossibleInvalidCookie(retcode, message, cookie);
   }
 
@@ -308,7 +313,7 @@ async function characterDetail(uid, server, character_ids, guess = false, bot) {
     const knownRoleChunks = lodash.chunk(knownRoles, MAX_QUERY_NUM);
     const roleNumber = (stats || {}).avatar_number;
     let queryList = knownRoleChunks;
-    let promises = [];
+    let promises;
 
     if (roleNumber !== (record || []).length) {
       const otherRoles = global.info.character.filter((c) => !character_ids.includes(c.id)).map((c) => c.id);
@@ -358,7 +363,6 @@ async function characterDetail(uid, server, character_ids, guess = false, bot) {
   }
 
   db.update("info", "user", { uid }, { avatars });
-  return;
 }
 
 export { abyDetail, baseDetail, characterDetail, handleDetailError, indexDetail };

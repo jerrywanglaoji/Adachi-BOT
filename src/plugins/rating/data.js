@@ -1,87 +1,54 @@
 import fetch from "node-fetch";
+import { findIndexOf } from "#plugins/rating/findIndexOf";
 
 function adjustProp(obj, bot) {
-  const maxValue = {
-    main_item: {
-      // 主属性直接设置为最大值
-      atk: 46.6, // 大攻击
-      hp: 46.6, // 大生命
-      df: 58.3, // 大防御
-      er: 51.8, // 充能
-      cr: 31.1, // 暴击率
-      cd: 62.6, // 暴击伤害
-      phys: 58.3, // 物伤
-      anemo: 46.6, // 风伤
-      geo: 46.6, // 岩伤
-      cryo: 46.6, // 冰伤
-      hydro: 46.6, // 水伤
-      elec: 46.6, // 雷伤
-      pyro: 46.6, // 火伤
-      heal: 35.9, // 治疗
-      em: 187, // 元素精通
-      atk2: 311, // 小攻击
-      hp2: 4780, // 小生命
-    },
-    sub_item: {
-      // 副属性只调整带百分号的，因为不带百分号的不会出现小数点
-      atk: 35.0, // 大攻击
-      hp: 35.0, // 大生命
-      df: 43.7, // 大防御
-      er: 38.9, // 充能
-      cr: 23.3, // 暴击率
-      cd: 46.6, // 暴击伤害
-    },
-  };
+  function log(type, item, before, after) {
+    bot.logger.debug(`评分：调整属性 ${type}：${item} （ ${before} -> ${after} ）`);
+  }
+
   const level = 20;
   const star = 5;
-  const say = (type, item, before, after) =>
-    bot.logger.debug(`评分：调整属性 ${type}：${item} （ ${before} -> ${after} ）`);
 
   // 等级设置为 20
   if (level !== obj.level) {
-    say("等级", "level", obj.level, level);
+    log("等级", "level", obj.level, level);
     obj.level = level;
   }
 
   // 星级设置为 5
   if (star !== obj.star) {
-    say("星级", "star", obj.star, star);
+    log("星级", "star", obj.star, star);
     obj.star = star;
   }
 
   // 主属性直接设置为最大值
-  if (maxValue.main_item[obj.main_item.type]) {
-    const value = parseFloat(obj.main_item.value);
+  const [index] = findIndexOf(obj.main_item);
 
-    if (obj.main_item.value.includes("%")) {
-      if (value > maxValue.main_item[obj.main_item.type]) {
-        const before = obj.main_item.value;
-        obj.main_item.value = `${maxValue.main_item[obj.main_item.type]}%`;
-        say("主属性", obj.main_item.type, before, obj.main_item.value);
-      }
-    } else {
-      let type = "atk" === obj.main_item.type ? "atk2" : "hp" === obj.main_item.type ? "hp2" : "em";
+  if ("number" === typeof index) {
+    if (parseFloat(global.artifacts.props[index].mainValues[1]) !== parseFloat(obj.main_item.value)) {
+      const before = obj.main_item.value;
 
-      if (value !== maxValue.main_item[type]) {
-        const before = obj.main_item.value;
-        obj.main_item.value = `${maxValue.main_item[type]}`;
-        say("主属性", obj.main_item.type, before, obj.main_item.value);
-      }
+      obj.main_item.value = global.artifacts.props[index].mainValues[1];
+      log("主属性", obj.main_item.type, before, obj.main_item.value);
     }
   }
 
-  // 试图调整副词条中丢失小数点的条目
+  // 试图调整百分比副词条中丢失小数点的条目
   for (const item of obj.sub_item || []) {
-    if (!maxValue.sub_item[item.type] || !item.value.includes("%")) {
+    const [index, percentage] = findIndexOf(item);
+
+    if ("number" !== typeof index || !percentage) {
       continue;
     }
 
     const value = parseFloat(item.value);
 
-    if (value > maxValue.sub_item[item.type]) {
+    // 这里不需要循环调整，因为游戏内至多显示一位小数点
+    if (value > parseFloat(global.artifacts.props[index].subValues[1]).toFixed(1)) {
       const before = item.value;
+
       item.value = `${(value / 10).toFixed(1)}%`;
-      say("副属性", item.type, before, item.value);
+      log("副属性", item.type, before, item.value);
     }
   }
 
@@ -94,7 +61,7 @@ function adjustProp(obj, bot) {
 //                 { "type": "atk", "name": "攻击力", "value": "117%" },
 //                 { "type": "cr", "name": "暴击率", "value": "10.5" },
 //                 { "type": "cd", "name": "暴击伤害", "value": "14.0" }]}
-async function imageOrc(msg, url) {
+async function imageOcr(msg, url) {
   const headers = {
     "Content-Type": "application/json",
   };
@@ -135,4 +102,4 @@ async function imageOrc(msg, url) {
   return adjustProp(await response.json(), msg.bot);
 }
 
-export { imageOrc };
+export { imageOcr };

@@ -1,8 +1,7 @@
-import { getParams, html } from "../common/utils.js";
+import { getParams, html, toReadableDate } from "../common/utils.js";
 import gachaBox from "./gacha-box.js";
 
-// eslint-disable-next-line no-undef
-const { defineComponent, defineAsyncComponent } = Vue;
+const { defineComponent, defineAsyncComponent } = window.Vue;
 const containerTemplate = html`<div class="gacha-title">
     <span class="deco-username">@{{ userName }}</span>在<span class="deco-time">{{ userDrawTime }}</span>抽取了<span
       class="deco-type"
@@ -16,7 +15,6 @@ const containerTemplate = html`<div class="gacha-title">
     <epitomeIndicator v-if="showEpitomizedPath" :data="epitomizedPath" />
     <div class="credit">Created by Adachi-BOT</div>
   </div>`;
-
 const epitomeIndicator = defineAsyncComponent(() => import("./epitomeIndicator.js"));
 
 export default defineComponent({
@@ -27,21 +25,12 @@ export default defineComponent({
     epitomeIndicator,
   },
   setup() {
-    const params = getParams(window.location.href);
-
     function get_time() {
-      const date = new Date();
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
-      let hour = date.getHours();
-      let minute = date.getMinutes();
-      let second = date.getSeconds();
+      const now = new Date();
+      const utc = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
+      const date = new Date(utc + 8 * 60 * 60 * 1000);
 
-      if (hour < 10) hour = "0" + hour;
-      if (minute < 10) minute = "0" + minute;
-      if (second < 10) second = "0" + second;
-
-      return `${month}月${day}日${hour}:${minute}:${second}`;
+      return toReadableDate(date, "mm月dd日HH:MM:SS");
     }
 
     function get_wish_type(type) {
@@ -59,11 +48,6 @@ export default defineComponent({
       }
     }
 
-    const userName = params.user;
-    const userDrawTime = get_time();
-    const [wishType, showEpitomizedPath] = get_wish_type(params.type);
-    const drawCount = params.data.length;
-
     function quickSortByRarity(m, n) {
       const mv = "角色" === m.item_type;
       const nv = "角色" === n.item_type;
@@ -71,6 +55,21 @@ export default defineComponent({
       return m.star === n.star ? nv - mv : n.star - m.star;
     }
 
+    function reducer(prev, current) {
+      return {
+        count: prev.count + current.count || 0,
+        item_name: "已折叠的三星武器",
+        item_type: "武器",
+        star: 3,
+        type: "sword",
+      };
+    }
+
+    const params = getParams(window.location.href);
+    const userName = params.user;
+    const userDrawTime = get_time();
+    const [wishType, showEpitomizedPath] = get_wish_type(params.type);
+    const drawCount = params.data.length;
     const isStatisticalData = params.data.length > 10;
 
     let gachaDataToShow =
@@ -79,13 +78,6 @@ export default defineComponent({
         : params.data.sort((x, y) => quickSortByRarity(x, y));
 
     const compactGachaData = gachaDataToShow.filter((item) => item.star > 3);
-    const reducer = (prev, current) => ({
-      count: prev.count + current.count || 0,
-      item_name: "已折叠的三星武器",
-      item_type: "武器",
-      star: 3,
-      type: "sword",
-    });
 
     if (params.type !== "eggs" && gachaDataToShow.length > 10) {
       if (compactGachaData.length >= 9) {

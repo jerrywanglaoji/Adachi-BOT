@@ -10,6 +10,30 @@
  * ==========================================================================
  *
  * ==========================================================================
+ * datadir
+ * --------------------------------------------------------------------------
+ * '/path/to/Adachi-BOT/data'
+ * ==========================================================================
+ *
+ * ==========================================================================
+ * oicqdir
+ * --------------------------------------------------------------------------
+ * '/path/to/Adachi-BOT/data'
+ * ==========================================================================
+ *
+ * ==========================================================================
+ * configdir
+ * --------------------------------------------------------------------------
+ * '/path/to/Adachi-BOT/config'
+ * ==========================================================================
+ *
+ * ==========================================================================
+ * configdefdir
+ * --------------------------------------------------------------------------
+ * '/path/to/Adachi-BOT/config_defaults'
+ * ==========================================================================
+ *
+ * ==========================================================================
  * package
  * --------------------------------------------------------------------------
  * context of this project's package.json
@@ -103,11 +127,13 @@
  *   prefixes: [ null ],
  *   atMe: 1,
  *   atUser: 1,
- *   repeatProb: 100,
+ *   replyStranger: 1,
+ *   repeatProb: 1,
  *   groupHello: 1,
  *   groupGreetingNew: 1,
  *   friendGreetingNew: 1,
  *   noticeMysNews: 1,
+ *   mysNewsType: [],
  *   characterTryGetDetail: 1,
  *   requestInterval: 0,
  *   deleteGroupMsgTime: 0,
@@ -130,11 +156,13 @@
  *   - 987654321
  * atMe: 1
  * atUser: 1
+ * replyStranger: 1
  * repeatProb: 1
  * groupHello: 1
  * groupGreetingNew: 1
  * friendGreetingNew: 1
  * noticeMysNews: 1
+ * mysNewsType: []
  * characterTryGetDetail: 1
  * requestInterval: 0
  * deleteGroupMsgTime: 0
@@ -268,21 +296,9 @@
  * global.artifacts
  * --------------------------------------------------------------------------
  * {
- *   weights: [
- *     [ 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0 ],
- *     [ 0, 0, 0, 0 ]
- *   ],
- *   values: [
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
- *     [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   ],
+ *   weights: [ [] ],
+ *   values: [ [] ],
+ *   props: [ {} ],
  *   path: [ 4, 2, 5, 1, 3 ],
  *   artifacts: {
  *     id: { '悠古的磐岩': 0 },
@@ -303,18 +319,11 @@
  * ../../config/artifacts.yml
  * --------------------------------------------------------------------------
  * weights:
- *   - [ 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0 ]
- *   - [ 0, 0, 0, 0 ]
+ *   - [ ]
  * values:
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
- *   - [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+ *   - [ ]
+ * props:
+ *   - { }
  * path: [ 4, 2, 5, 1, 3 ]
  * artifacts:
  *   - id: 0
@@ -390,11 +399,15 @@ const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 global.rootdir = path.resolve(__dirname, "..", "..");
+global.datadir = path.resolve(global.rootdir, "data");
+global.oicqdir = global.datadir;
+global.configdir = path.resolve(global.rootdir, "config");
+global.configdefdir = path.resolve(global.rootdir, "config_defaults");
 
 global.all = {};
 global.artifacts = {};
 global.command = {};
-global.config = {};
+global.config = { mysNewsTypeAll: ["announcement", "event", "information"] };
 global.cookies = [];
 global.eggs = {};
 global.greeting = {};
@@ -406,33 +419,33 @@ global.names = {};
 global.package = JSON.parse(fs.readFileSync(path.resolve(global.rootdir, "package.json")));
 global.prophecy = {};
 
-const Artifacts = loadYML("artifacts");
-const Command = loadYML("command");
-const Cookies = loadYML("cookies");
-const Eggs = loadYML("pool_eggs");
-const Greeting = loadYML("greeting");
-const Master = loadYML("command_master");
-const Menu = loadYML("menu");
-const Names = loadYML("names");
-const Prophecy = loadYML("prophecy");
-const Setting = loadYML("setting");
+const mArtifacts = loadYML("artifacts");
+const mCommand = loadYML("command");
+const mCookies = loadYML("cookies");
+const mEggs = loadYML("pool_eggs");
+const mGreeting = loadYML("greeting");
+const mMaster = loadYML("command_master");
+const mMenu = loadYML("menu");
+const mNames = loadYML("names");
+const mProphecy = loadYML("prophecy");
+const mSetting = loadYML("setting");
 
-// global[key].enable                -> plugin (lowercase):    is_enabled (boolean)
-// global[key].weights               -> plugin (lowercase):    weights (number)
-// global[key].regex                 -> regex (lowercase):     plugin (string)
-// global[key].function              -> function (lowercase):  plugin (array of string, lowercase)
-// global[key].functions.type        -> function (lowercase):  type (string)
-// global[key].functions.show        -> function (lowercase):  is_show (boolean)
-// global[key].functions.weights     -> function (lowercase):  weights (number)
-// global[key].functions.name        -> function (lowercase):  name (string)
-// global[key].functions.usage       -> function (lowercase):  usage (string)
-// global[key].functions.revert      -> function (lowercase):  revert (boolean)
-// global[key].functions.description -> function (lowercase):  description (string)
-// global[key].functions.entrance    -> function (lowercase):  entrance (array of string, lowercase)
-// global[key].functions.options     -> function (lowercase):  { function: { option: text } } (both lowercase)
-function getCommand(obj, key) {
-  const reduce = (obj, key, lowercase = [false, false], defaultValue = undefined, revert = false) =>
-    lodash.reduce(
+// global[type].enable                -> plugin (lowercase):    is_enabled (boolean)
+// global[type].weights               -> plugin (lowercase):    weights (number)
+// global[type].regex                 -> regex (lowercase):     plugin (string)
+// global[type].function              -> function (lowercase):  plugin (array of string, lowercase)
+// global[type].functions.type        -> function (lowercase):  type (string)
+// global[type].functions.show        -> function (lowercase):  is_show (boolean)
+// global[type].functions.weights     -> function (lowercase):  weights (number)
+// global[type].functions.name        -> function (lowercase):  name (string)
+// global[type].functions.usage       -> function (lowercase):  usage (string)
+// global[type].functions.revert      -> function (lowercase):  revert (boolean)
+// global[type].functions.description -> function (lowercase):  description (string)
+// global[type].functions.entrance    -> function (lowercase):  entrance (array of string, lowercase)
+// global[type].functions.options     -> function (lowercase):  { function: { option: text } } (both lowercase)
+function getCommand(obj, type) {
+  function reduce(obj, key, lowercase = [false, false], defaultValue = undefined, revert = false) {
+    return lodash.reduce(
       obj,
       (p, v, k) => {
         if (key) {
@@ -461,14 +474,15 @@ function getCommand(obj, key) {
       },
       {}
     );
+  }
 
-  const deepReduce = (obj, key, lowercase = [false, false], defaultValue = undefined, revert = false) =>
-    lodash.reduce(
+  function deepReduce(obj, key, lowercase = [false, false], defaultValue = undefined, revert = false) {
+    return lodash.reduce(
       obj,
       (p, v, k) => {
         if (key) {
           (v[key] ? (Array.isArray(v[key]) ? v[key] : Object.entries(v[key] || {})) : []).forEach((c) => {
-            const transToLowerCase = (o) => {
+            function transToLowerCase(o) {
               if ("string" === typeof o) {
                 return o.toLowerCase();
               } else if (Array.isArray(o)) {
@@ -483,10 +497,11 @@ function getCommand(obj, key) {
                 );
               } else {
                 return lodash.transform(o, (r, v, k) => {
-                  r[(k = "string" === typeof k ? k.toLowerCase() : k)] = "string" === typeof v ? v.toLowerCase() : v;
+                  r["string" === typeof k ? k.toLowerCase() : k] = "string" === typeof v ? v.toLowerCase() : v;
                 });
               }
-            };
+            }
+
             let p1 = true === lowercase[0] ? transToLowerCase(k) : k;
             let p2 = true === lowercase[1] ? transToLowerCase(c) : c;
 
@@ -505,38 +520,39 @@ function getCommand(obj, key) {
       },
       {}
     );
+  }
 
-  if (!["command", "master"].includes(key)) {
+  function add(key, name, prop, callback, ...rest) {
+    global[key].functions[prop] = Object.assign(
+      global[key].functions[prop] || {},
+      callback(obj[name].functions, prop, ...rest)
+    );
+  }
+
+  if (!["command", "master"].includes(type)) {
     return;
   }
 
-  global[key].enable = reduce(obj, "enable", [true, false], false);
-  global[key].weights = reduce(obj, "weights", [true, false], 0);
-  global[key].regex = deepReduce(obj, "regex", [true, false], undefined, true);
-  global[key].function = deepReduce(obj, "functions", [true, true]);
-  global[key].functions = {};
+  global[type].enable = reduce(obj, "enable", [true, false], false);
+  global[type].weights = reduce(obj, "weights", [true, false], 0);
+  global[type].regex = deepReduce(obj, "regex", [true, false], undefined, true);
+  global[type].function = deepReduce(obj, "functions", [true, true]);
+  global[type].functions = {};
 
-  for (const name in obj) {
-    const add = (obj, key, name, prop, callback, ...rest) => {
-      global[key].functions[prop] = lodash.assign(
-        global[key].functions[prop] || {},
-        callback(obj[name].functions, prop, ...rest)
-      );
-    };
-
-    add(obj, key, name, "type", reduce, [true, false], 0);
-    add(obj, key, name, "show", reduce, [true, false], true);
-    add(obj, key, name, "weights", reduce, [true, false], 0);
-    add(obj, key, name, "name", reduce, [true, false]);
-    add(obj, key, name, "usage", reduce, [true, false]);
-    add(obj, key, name, "revert", reduce, [true, false], false);
-    add(obj, key, name, "description", reduce, [true, false]);
-    add(obj, key, name, "entrance", deepReduce, [true, true]);
-    add(obj, key, name, "options", deepReduce, [true, true]);
+  for (const name of Object.keys(obj)) {
+    add(type, name, "type", reduce, [true, false], 0);
+    add(type, name, "show", reduce, [true, false], true);
+    add(type, name, "weights", reduce, [true, false], 0);
+    add(type, name, "name", reduce, [true, false]);
+    add(type, name, "usage", reduce, [true, false]);
+    add(type, name, "revert", reduce, [true, false], false);
+    add(type, name, "description", reduce, [true, false]);
+    add(type, name, "entrance", deepReduce, [true, true]);
+    add(type, name, "options", deepReduce, [true, true]);
   }
 
-  global[key].function = lodash.reduce(
-    global[key].function,
+  global[type].function = lodash.reduce(
+    global[type].function,
     (p, v, k) => {
       v.forEach((c) => (p[k] || (p[k] = [])).push(c[0]));
       return p;
@@ -545,13 +561,13 @@ function getCommand(obj, key) {
   );
 
   // 所有 switch 转换为 option
-  if (global[key].functions.type) {
-    Object.keys(global[key].functions.type).forEach((f) => {
-      if ("switch" === global[key].functions.type[f]) {
-        global[key].functions.type[f] = "option";
-        global[key].functions.options[f] = lodash
+  if (global[type].functions.type) {
+    Object.keys(global[type].functions.type).forEach((f) => {
+      if ("switch" === global[type].functions.type[f]) {
+        global[type].functions.type[f] = "option";
+        global[type].functions.options[f] = lodash
           .chain({})
-          .assign({ on: "on" }, { off: "off" }, global[key].functions.options[f] || {})
+          .assign({ on: "on" }, { off: "off" }, global[type].functions.options[f] || {})
           .pick(["on", "off"])
           .toPairs()
           .value();
@@ -559,14 +575,14 @@ function getCommand(obj, key) {
     });
   }
 
-  global[key].functions.options = lodash.reduce(
-    global[key].functions.options,
+  global[type].functions.options = lodash.reduce(
+    global[type].functions.options,
     (p, v, k) => {
       v.forEach((c) => {
         const value = undefined === c[1].toString ? c[1] : c[1].toString();
         const opName = c[0];
         const opValue = "string" === typeof value ? value.toLowerCase() : value;
-        lodash.assign(p[k] || (p[k] = {}), { [opName]: opValue });
+        Object.assign(p[k] || (p[k] = {}), { [opName]: opValue });
       });
       return p;
     },
@@ -647,6 +663,8 @@ function readSetting() {
     atMe: 0,
     // 群聊回复时不 @ 用户
     atUser: 0,
+    // 不回复陌生人消息
+    replyStranger: 0,
     // 不复读群消息
     repeatProb: 0,
     // 不发送群通知
@@ -657,6 +675,8 @@ function readSetting() {
     friendGreetingNew: 0,
     // 不推送米游社新闻
     noticeMysNews: 0,
+    // 无米游社新闻推送类型
+    mysNewsType: [],
     // 角色查询不尝试拉取数据
     characterTryGetDetail: 0,
     // 耗时操作前不发送提示
@@ -682,40 +702,41 @@ function readSetting() {
   };
 
   // 用于兼容旧配置，已经被 accounts 取代
-  const account = Setting.account;
-  const accounts = Setting.accounts;
+  const account = mSetting.account;
+  const accounts = mSetting.accounts;
   // 用于兼容旧配置，已经被 masters 取代
-  const master = Setting.master;
-  const masters = Setting.masters;
-  const prefixes = Setting.prefixes;
-  const atMe = parseInt(Setting.atMe);
-  const atUser = parseInt(Setting.atUser);
-  const repeatProb = parseInt(parseFloat(Setting.repeatProb) * 100);
-  const groupHello = parseInt(Setting.groupHello);
-  const groupGreetingNew = parseInt(Setting.groupGreetingNew);
-  const friendGreetingNew = parseInt(Setting.friendGreetingNew);
-  const noticeMysNews = parseInt(Setting.noticeMysNews);
-  const characterTryGetDetail = parseInt(Setting.characterTryGetDetail);
-  const warnTimeCosts = parseInt(Setting.warnTimeCosts);
-  const requestInterval = parseInt(Setting.requestInterval);
-  const deleteGroupMsgTime = parseInt(Setting.deleteGroupMsgTime);
-  const boardcastDelay = parseInt(parseFloat(Setting.boardcastDelay) * 1000);
-  const cacheAbyEffectTime = parseInt(Setting.cacheAbyEffectTime);
-  const cacheInfoEffectTime = parseInt(Setting.cacheInfoEffectTime);
-  const dbAbyEffectTime = parseInt(Setting.dbAbyEffectTime);
-  const dbInfoEffectTime = parseInt(Setting.dbInfoEffectTime);
-  const viewDebug = parseInt(Setting.viewDebug);
-  const saveImage = parseInt(Setting.saveImage);
+  const master = mSetting.master;
+  const masters = mSetting.masters;
+  const prefixes = mSetting.prefixes;
+  const atMe = parseInt(mSetting.atMe);
+  const atUser = parseInt(mSetting.atUser);
+  const replyStranger = parseInt(mSetting.replyStranger);
+  const repeatProb = parseInt(parseFloat(mSetting.repeatProb) * 100);
+  const groupHello = parseInt(mSetting.groupHello);
+  const groupGreetingNew = parseInt(mSetting.groupGreetingNew);
+  const friendGreetingNew = parseInt(mSetting.friendGreetingNew);
+  const noticeMysNews = parseInt(mSetting.noticeMysNews);
+  const mysNewsType = Array.isArray(mSetting.mysNewsType) ? mSetting.mysNewsType : [];
+  const characterTryGetDetail = parseInt(mSetting.characterTryGetDetail);
+  const warnTimeCosts = parseInt(mSetting.warnTimeCosts);
+  const requestInterval = parseInt(mSetting.requestInterval);
+  const deleteGroupMsgTime = parseInt(mSetting.deleteGroupMsgTime);
+  const boardcastDelay = parseInt(parseFloat(mSetting.boardcastDelay) * 1000);
+  const cacheAbyEffectTime = parseInt(mSetting.cacheAbyEffectTime);
+  const cacheInfoEffectTime = parseInt(mSetting.cacheInfoEffectTime);
+  const dbAbyEffectTime = parseInt(mSetting.dbAbyEffectTime);
+  const dbInfoEffectTime = parseInt(mSetting.dbInfoEffectTime);
+  const viewDebug = parseInt(mSetting.viewDebug);
+  const saveImage = parseInt(mSetting.saveImage);
 
-  const getConfig = (...pairs) => {
-    pairs.forEach((p) => {
-      const prop = Object.keys(p)[0];
-      const val = p[prop];
+  (function getConfig(...items) {
+    items.forEach((o) => {
+      const prop = Object.keys(o)[0];
+      const val = o[prop];
+
       global.config[prop] = val || defaultConfig[prop];
     });
-  };
-
-  getConfig(
+  })(
     { accounts: [...(accounts || []), ...(account ? [account] : [])] },
     { masters: [...(masters || []), ...(master ? [master] : [])] },
     {
@@ -723,11 +744,13 @@ function readSetting() {
     },
     { atMe },
     { atUser },
+    { replyStranger },
     { repeatProb },
     { groupHello },
     { groupGreetingNew },
     { friendGreetingNew },
     { noticeMysNews },
+    { mysNewsType },
     { characterTryGetDetail },
     { warnTimeCosts },
     { requestInterval },
@@ -775,38 +798,54 @@ function readSetting() {
   if (![0, 1, 2].includes(global.config.atMe)) {
     global.config.atMe = defaultConfig.atMe;
   }
+
+  // 过滤合法的米游社新闻推送
+  global.config.mysNewsType = global.config.mysNewsType.filter((c) =>
+    global.config.mysNewsTypeAll.includes(c.toLowerCase())
+  );
 }
 
 function readCookies() {
-  if (lodash.hasIn(Cookies, "cookies")) {
+  if (lodash.hasIn(mCookies, "cookies")) {
     switch (true) {
-      case Array.isArray(Cookies.cookies):
-        global.cookies = Cookies.cookies;
+      case Array.isArray(mCookies.cookies):
+        global.cookies = mCookies.cookies;
         break;
-      case "string" === typeof Cookies.cookies:
-        global.cookies = [Cookies.cookies];
+      case "string" === typeof mCookies.cookies:
+        global.cookies = [mCookies.cookies];
         break;
     }
   }
 }
 
 function readGreeting() {
-  global.greeting = Greeting;
+  global.greeting = Object.assign(
+    {
+      online: "我上线了。",
+      offline: "我下线了。",
+      die: "我上线了。",
+      hello: "大家好。",
+      new: "你好。",
+    },
+    mGreeting
+  );
 }
 
 function readMenu() {
-  const parse = (o) => Object.keys(o).forEach((k) => (o[k] = Array.isArray(o[k]) ? o[k] : o[k] ? [o[k]] : []));
+  function parse(o) {
+    Object.keys(o).forEach((k) => (o[k] = Array.isArray(o[k]) ? o[k] : o[k] ? [o[k]] : []));
+  }
 
   global.menu = {};
-  global.menu.eat = Menu.eat || {};
-  global.menu.drink = Menu.drink || {};
+  global.menu.eat = mMenu.eat || {};
+  global.menu.drink = mMenu.drink || {};
 
   parse(global.menu.eat);
   parse(global.menu.drink);
 }
 
 function readProphecy() {
-  global.prophecy = Prophecy;
+  global.prophecy = mProphecy;
   global.prophecy.data = Array.isArray(global.prophecy.data) ? global.prophecy.data : [];
 }
 
@@ -817,9 +856,9 @@ function readProphecy() {
 // global.names.weaponNames     ->  { name: simhash } (name lowercase)
 // global.names.allNames        ->  { name: simhash } (name lowercase)
 function readNames() {
-  const getSection = (s) =>
-    lodash.reduce(
-      Names[s] || {},
+  function getSection(s) {
+    return lodash.reduce(
+      mNames[s] || {},
       (p, v, k) => {
         (v || (v = [])).push(k);
         v.forEach((c) => (p["string" === typeof c ? c.toLowerCase() : c] = k));
@@ -827,34 +866,23 @@ function readNames() {
       },
       {}
     );
-  const getNames = (o) => lodash.chain(o).toPairs().flatten().uniq().value();
+  }
+
+  function getNames(o) {
+    return lodash.chain(o).toPairs().flatten().uniq().value();
+  }
 
   global.names.characterAlias = getSection("character");
   global.names.weaponAlias = getSection("weapon");
-  global.names.allAlias = lodash.assign({}, global.names.characterAlias, global.names.weaponAlias);
+  global.names.allAlias = Object.assign({}, global.names.characterAlias, global.names.weaponAlias);
   global.names.character = getNames(global.names.characterAlias);
   global.names.weapon = getNames(global.names.weaponAlias);
   global.names.all = getNames(global.names.allAlias);
 }
 
-// global.eggs.type: name -> type (string)
-// global.eggs.star: name -> type (string)
-function readEggs() {
-  global.eggs.type = {};
-  global.eggs.star = {};
-
-  Array.isArray(Eggs.items) &&
-    Eggs.items.forEach((c) => {
-      if (Array.isArray(c.names)) {
-        const star = parseInt(c.star) || 5;
-        c.type && c.names.forEach((n) => (global.eggs.type[n] = c.type));
-        c.names.forEach((n) => (global.eggs.star[n] = star));
-      }
-    });
-}
-
 // global.artifacts.weights          -> weights (array of array of number)
 // global.artifacts.values           -> values (array of array of number)
+// global.artifacts.props            -> props (array of object)
 // global.artifacts.artifacts.id     -> suit (lowercase):  id (number)
 // global.artifacts.artifacts.rarity -> id:                rarity (number)
 // global.artifacts.artifacts.icon   -> icon:              id (number)
@@ -866,54 +894,61 @@ function readEggs() {
 // global.artifacts.domains.aliasOf  -> id:                alias (array of string, lowercase)
 // global.artifacts.domains.product  -> id:                product (array of number)
 function readArtifacts() {
-  const reduce = (prop, key = [undefined, undefined], lowercase = [false, false]) =>
-    key.includes(undefined) ||
-    lodash.reduce(
-      Artifacts[prop] || [],
-      (p, v) => {
-        let p1 = v[key[0]];
-        let p2 = v[key[1]];
+  function reduce(prop, key = [undefined, undefined], lowercase = [false, false]) {
+    if (!key.includes(undefined)) {
+      return lodash.reduce(
+        mArtifacts[prop] || [],
+        (p, v) => {
+          let p1 = v[key[0]];
+          let p2 = v[key[1]];
 
-        if (true === lowercase[0]) {
-          p1 = "string" === typeof p1 ? p1.toLowerCase() : p1;
-        }
-        if (true === lowercase[1]) {
-          p2 = "string" === typeof p2 ? p2.toLowerCase() : Array.isArray(p2) ? p2.map((c) => c.toLowerCase()) : p2;
-        }
+          if (true === lowercase[0]) {
+            p1 = "string" === typeof p1 ? p1.toLowerCase() : p1;
+          }
+          if (true === lowercase[1]) {
+            p2 = "string" === typeof p2 ? p2.toLowerCase() : Array.isArray(p2) ? p2.map((c) => c.toLowerCase()) : p2;
+          }
 
-        p[p1] = p2;
-        return p;
-      },
-      {}
-    );
-  const deepReduce = (prop, key = [undefined, undefined], lowercase = [false, false]) =>
-    key.includes(undefined) ||
-    lodash.reduce(
-      Artifacts[prop] || [],
-      (p, v) => {
-        (v[key[0]] || []).forEach((c) => {
-          (Array.isArray(c) ? c : [c]).forEach((c) => {
-            let p1 = c;
-            let p2 = v[key[1]];
+          p[p1] = p2;
+          return p;
+        },
+        {}
+      );
+    }
+  }
 
-            if (true === lowercase[0]) {
-              p1 = "string" === typeof p1 ? p1.toLowerCase() : p1;
-            }
-            if (true === lowercase[1]) {
-              p2 = "string" === typeof p2 ? p2.toLowerCase() : Array.isArray(p2) ? p2.map((c) => c.toLowerCase()) : p2;
-            }
+  function deepReduce(prop, key = [undefined, undefined], lowercase = [false, false]) {
+    if (!key.includes(undefined)) {
+      return lodash.reduce(
+        mArtifacts[prop] || [],
+        (p, v) => {
+          (v[key[0]] || []).forEach((c) => {
+            (Array.isArray(c) ? c : [c]).forEach((c) => {
+              let p1 = c;
+              let p2 = v[key[1]];
 
-            p[p1] = p2;
+              if (true === lowercase[0]) {
+                p1 = "string" === typeof p1 ? p1.toLowerCase() : p1;
+              }
+              if (true === lowercase[1]) {
+                p2 =
+                  "string" === typeof p2 ? p2.toLowerCase() : Array.isArray(p2) ? p2.map((c) => c.toLowerCase()) : p2;
+              }
+
+              p[p1] = p2;
+            });
           });
-        });
-        return p;
-      },
-      {}
-    );
+          return p;
+        },
+        {}
+      );
+    }
+  }
 
-  global.artifacts.weights = Artifacts.weights;
-  global.artifacts.values = Artifacts.values;
-  global.artifacts.path = Artifacts.path;
+  global.artifacts.weights = mArtifacts.weights;
+  global.artifacts.values = mArtifacts.values;
+  global.artifacts.props = mArtifacts.props;
+  global.artifacts.path = mArtifacts.path;
   global.artifacts.artifacts = {};
   global.artifacts.artifacts.id = reduce("artifacts", ["suit", "id"], [true, false]);
   global.artifacts.artifacts.rarity = reduce("artifacts", ["id", "rarity"], [false, false]);
@@ -930,12 +965,12 @@ function readArtifacts() {
 
 // Call after readNames()
 //
-// global.info.character    -> array of { type, title, id , name, introduce, birthday, element, cv, constellationName,
-//                                        rarity, mainStat, mainValue, baseATK, passiveTitle, passiveDesc,
-//                                        ascensionMaterials, levelUpMaterials, talentMaterials, time,
-//                                        constellations }, sorted by rarity
-// global.info.weapon       -> array of { type, title, name, introduce, access, rarity, mainStat, mainValue, baseATK,
-//                                        ascensionMaterials, time, skillName, skillContent }, sorted by rarity
+// global.info.character    -> array of { access, ascensionMaterials, baseATK, birthday, constellationName,
+//                                        constellations, cv, cvCN, cvJP, element, id, introduce, levelUpMaterials,
+//                                        mainStat, mainValue, name, passiveDesc, passiveTitle, rarity,
+//                                        talentMaterials, time, title, type }, sorted by rarity
+// global.info.weapon       -> array of { access, ascensionMaterials, baseATK, introduce, mainStat, mainValue, name,
+//                                        rarity, skillContent, skillName, time, title, type }, sorted by rarity
 function readInfo() {
   const names = Object.values(global.names.allAlias);
   const dir = path.resolve(global.rootdir, "resources", "Version2", "info", "docs");
@@ -967,6 +1002,39 @@ function readInfo() {
     .sortBy("rarity")
     .reverse()
     .value();
+}
+
+// Call after readInfo()
+//
+// global.eggs.type: name -> type (string)
+// global.eggs.star: name -> type (string)
+function readEggs() {
+  global.eggs.type = {};
+  global.eggs.star = {};
+
+  ((mEggs || {}).items || []).forEach((c) => {
+    if (Array.isArray(c.names) && "string" === typeof c.type) {
+      c.names.forEach((n) => {
+        if ("string" === typeof n) {
+          global.eggs.type[n] = c.type;
+          global.eggs.star[n] = parseInt(c.rarity) || 5;
+        }
+      });
+    }
+  });
+
+  if (0 === Object.keys(global.eggs.type).length || 0 === Object.keys(global.eggs.star).length) {
+    global.eggs.type = {};
+    global.eggs.star = {};
+
+    global.info.character.concat(global.info.weapon).forEach((c) => {
+      // 只要五星
+      if ("string" === typeof c.type && 5 === parseInt(c.rarity) && "祈愿" === c.access) {
+        global.eggs.type[c.name] = c.type;
+        global.eggs.star[c.name] = 5;
+      }
+    });
+  }
 }
 
 // global.material.MonThu   -> array of name (string, lowercase)
@@ -1003,8 +1071,8 @@ function readMaterial() {
 // global.command
 // global.master
 function readCommand() {
-  getCommand(Command, "command");
-  getCommand(Master, "master");
+  getCommand(mCommand, "command");
+  getCommand(mMaster, "master");
 }
 
 // global.all.function
@@ -1013,16 +1081,16 @@ function readCommand() {
 // global.all.function
 // global.all.functions.entrance
 function getAll() {
-  const merge = (o, p, o1, o2) => {
+  function merge(o, p, o1, o2) {
     o[p] = {};
     // 这里可能有重复的 key 需要手动处理一下
     for (const k of [...new Set([...Object.keys(o1 || {}), ...Object.keys(o2 || {})])]) {
       o[p][k] = [...new Set([...((o1 || {})[k] || []), ...((o2 || {})[k] || [])])];
     }
-  };
+  }
 
   global.all.functions = {};
-  global.all.functions.options = lodash.assign({}, global.command.functions.options, global.master.functions.options);
+  global.all.functions.options = Object.assign({}, global.command.functions.options, global.master.functions.options);
   merge(global.all, "function", global.command.function, global.master.function);
   merge(global.all.functions, "entrance", global.command.functions.entrance, global.master.functions.entrance);
 }
@@ -1042,9 +1110,9 @@ function readConfig() {
   readMenu();
   readProphecy();
   readNames();
-  readEggs();
   readArtifacts();
   readInfo();
+  readEggs();
   readMaterial();
   readCommand();
   getAll();
@@ -1054,22 +1122,24 @@ function readConfig() {
 function hasEntrance(message, plugin, ...entrance) {
   const messageu = message.toLowerCase(); // 忽略大小写
 
-  if (global.all.function[plugin]) {
-    for (const e of entrance) {
-      // 验证 entrance 是否在插件中
-      if (!global.all.function[plugin].includes(e)) {
-        continue;
-      }
+  if (undefined === global.all.function[plugin]) {
+    return false;
+  }
 
-      // 验证 message 是否以 entrance 对应的字符串开始
-      if (Array.isArray(global.all.functions.entrance[e])) {
-        for (const t of global.all.functions.entrance[e]) {
-          if (t) {
-            if (new RegExp(t, "i").test(messageu)) {
-              return true;
-            }
-          }
-        }
+  for (const e of entrance) {
+    // 验证 entrance 是否在插件中
+    if (!global.all.function[plugin].includes(e)) {
+      continue;
+    }
+
+    if (!Array.isArray(global.all.functions.entrance[e])) {
+      continue;
+    }
+
+    // 验证 message 是否以 entrance 对应的字符串开始
+    for (const t of global.all.functions.entrance[e]) {
+      if ("string" === typeof t && new RegExp(t, "i").test(messageu)) {
+        return true;
       }
     }
   }

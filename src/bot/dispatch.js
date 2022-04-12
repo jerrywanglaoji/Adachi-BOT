@@ -1,20 +1,27 @@
 import lodash from "lodash";
 import { checkAuth } from "#utils/auth";
 import { isGroupBan, toCqcode } from "#utils/oicq";
+import { getGroupOfStranger } from "#utils/oicq";
 import { getRandomInt } from "#utils/tools";
 
 // 无需加锁
-const timestamp = {};
+const mTimestamp = {};
 
-function doPossibleCommand(msg, plugins, type, bot) {
+async function doPossibleCommand(msg, plugins, type, bot) {
   if (undefined === type) {
+    return false;
+  }
+
+  const groupOfStranger = await getGroupOfStranger(bot, msg.user_id);
+
+  if ("private" === type && 1 !== global.config.replyStranger && undefined !== groupOfStranger) {
     return false;
   }
 
   // 处理 @ 机器人
   // [CQ:at,type=at,qq=123456789,text=@昵称]
-  const atMeReg = new RegExp(`^\\s*\\[CQ:at,type=.*?,qq=${bot.uin},text=.+?\\]\\s*`);
-  const atMe = lodash.chain(msg.message).filter({ type: "at" }).find({ qq: bot.uin }).value() ? true : false;
+  const atMeReg = new RegExp(`^\\s*\\[CQ:at,type=.*?,qq=${bot.uin},text=.+?]\\s*`);
+  const atMe = !!lodash.chain(msg.message).filter({ type: "at" }).find({ qq: bot.uin }).value();
 
   if (atMe) {
     switch (global.config.atMe) {
@@ -49,11 +56,33 @@ function doPossibleCommand(msg, plugins, type, bot) {
     }
   }
 
-  if (!match) {
+  if (true === match) {
+    msg.raw_message = msg.raw_message.slice(thisPrefix ? thisPrefix.length : 0).trimStart();
+  } else {
     return false;
   }
 
-  msg.raw_message = msg.raw_message.slice(thisPrefix ? thisPrefix.length : 0).trimStart();
+  // 同步 oicq 数据结构
+  if (lodash.hasIn(msg.message, "[0].text")) {
+    msg.message = lodash.chain(msg.message).filter({ type: "text" }).slice(0, 1).value();
+    msg.message[0].text = msg.raw_message;
+  }
+
+  // 添加自定义属性
+  msg.bot = bot;
+  msg.text = msg.raw_message;
+  msg.type = type;
+  msg.uid = msg.user_id;
+  msg.gid = msg.group_id;
+  msg.sid = "group" === msg.type ? msg.gid : msg.uid;
+  msg.name = msg.sender.nickname;
+  msg.atMe = atMe;
+  msg.groupOfStranger = groupOfStranger;
+
+  // 不响应消息则当做一条已经指派插件的命令返回
+  if (false === checkAuth(msg, global.innerAuthName.reply, false)) {
+    return true;
+  }
 
   // 匹配插件入口
   for (const regex in regexPool) {
@@ -68,36 +97,20 @@ function doPossibleCommand(msg, plugins, type, bot) {
         return true;
       }
 
-      if ("group" === type && true === isGroupBan(msg, type, bot)) {
+      if ("group" === type && isGroupBan(msg, type, bot)) {
         return true;
       }
 
-      // 同步 oicq 数据结构
-      if (lodash.hasIn(msg.message, "[0].text")) {
-        msg.message = lodash.chain(msg.message).filter({ type: "text" }).slice(0, 1).value();
-        msg.message[0].text = msg.raw_message;
-      }
-
-      // 添加自定义属性
-      msg.text = msg.raw_message;
-      msg.type = type;
-      msg.uid = msg.user_id;
-      msg.gid = msg.group_id;
-      msg.sid = "group" === msg.type ? msg.gid : msg.uid;
-      msg.name = msg.sender.nickname;
-      msg.atMe = atMe;
-      msg.bot = bot;
-
-      if (false !== checkAuth(msg, global.innerAuthName.reply, false)) {
-        if (global.config.requestInterval < msg.time - (timestamp[msg.user_id] || (timestamp[msg.user_id] = 0))) {
-          timestamp[msg.user_id] = msg.time;
-          // 参数 bot 为了兼容可能存在的旧插件
-          plugins[plugin].run(msg, bot);
-          return true;
-        }
+      if (global.config.requestInterval < msg.time - (mTimestamp[msg.user_id] || (mTimestamp[msg.user_id] = 0))) {
+        mTimestamp[msg.user_id] = msg.time;
+        // 参数 bot 为了兼容可能存在的旧插件
+        plugins[plugin].run(msg, bot);
+        return true;
       }
     }
   }
+
+  return false;
 }
 
 function doNoticeFriendIncrease(msg, bot) {
@@ -135,7 +148,7 @@ function doSystemOnline(bot) {
   bot.sayMaster(undefined, "我上线了。");
 
   // 尝试通知群
-  if (global.config.groupHello) {
+  if (1 === global.config.groupHello) {
     bot.gl.forEach((group) => {
       const greeting =
         false !== checkAuth({ sid: group.group_id }, global.innerAuthName.reply, false)
@@ -150,7 +163,7 @@ function doSystemOnline(bot) {
   }
 }
 
-function dispatch(msg, plugins, event, bot) {
+async function dispatch(msg, plugins, event, bot) {
   const types = { "message.private": "private", "message.group": "group" };
 
   if (undefined !== msg.raw_message && Array.isArray(msg.message)) {
@@ -158,8 +171,8 @@ function dispatch(msg, plugins, event, bot) {
   }
 
   // 如果信息是命令，尝试指派插件处理命令
-  if (Object.keys(types).includes(event) && lodash.find(msg.message, { type: "text" })) {
-    if (doPossibleCommand(msg, plugins, types[event], bot)) {
+  if (Object.keys(types).includes(event) && msg.message.find((c) => "text" === c.type)) {
+    if (await doPossibleCommand(msg, plugins, types[event], bot)) {
       return;
     }
   }
