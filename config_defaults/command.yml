@@ -466,6 +466,7 @@ save:
       description: null
       entrance:
         - ^绑定
+
     change:
       type: command
       show: true
@@ -473,7 +474,6 @@ save:
       name: 改绑
       usage: <米游社通行证ID>
       revert: false
-      description: null
       description: 不带ID则解除已有绑定
       entrance:
         - ^(绑定|改绑)
